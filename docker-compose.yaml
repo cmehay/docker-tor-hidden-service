@@ -1,0 +1,10 @@
+# docker-compose.yml example
+
+tor:
+  image: goldy/tor-hidden-service
+  links:
+    - hello
+
+hello:
+  image: tutum/hello-world
+  hostname: hello-world

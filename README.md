@@ -1,11 +1,12 @@
-h1. docker-tor-hidden-service
+# docker-tor-hidden-service
 
 Create a tor hidden service with a link
 
 ```
-$ # run a container with an network application
+# run a container with an network application
 $ docker run -d --name hello_world tutum/hello_world
-$ # and just link it to this container
+
+# and just link it to this container
 $ docker run -ti --link hello_world goldy/tor-hidden-service
 ```
 
@@ -16,3 +17,5 @@ To keep onion keys, just mount volume `/var/lib/tor/hidden_service/`
 ```
 $ docker run -ti --link something --volume /path/to/keys:/var/lib/tor/hidden_service/ goldy/tor-hidden-service
 ```
+
+Look at the `docker-compose.yml` file to see own to use it.
