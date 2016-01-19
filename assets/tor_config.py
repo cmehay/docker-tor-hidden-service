@@ -28,7 +28,7 @@ def set_conf():
                     service=service
                 ))
             if env_port:
-                service = '{port} {ip}:{port}'.format(
+                service = '80 {ip}:{port}'.format(
                      port=env_port, ip=links[link]['ip']
                 )
                 conf.write('HiddenServicePort {service}\n'.format(
