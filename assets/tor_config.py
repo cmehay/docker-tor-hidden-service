@@ -11,8 +11,9 @@ def set_conf():
     with open("/etc/tor/torrc", "a") as conf:
         for link in links:
             path = "/var/lib/tor/hidden_service/{service}".format(service=link)
+            env_port = links[link]['environment'].get('PORT')
             # Test if link has ports
-            if len(links[link]['ports']) == 0:
+            if len(links[link]['ports']) == 0 and not env_port:
                 print("{link} has no port")
                 continue
             conf.write('HiddenServiceDir {path}\n'.format(path=path))
@@ -22,6 +23,13 @@ def set_conf():
                     continue
                 service = '{port} {ip}:{port}'.format(
                     port=port, ip=links[link]['ip']
+                )
+                conf.write('HiddenServicePort {service}\n'.format(
+                    service=service
+                ))
+            if env_port:
+                service = '80 {ip}:{port}'.format(
+                     port=env_port, ip=links[link]['ip']
                 )
                 conf.write('HiddenServicePort {service}\n'.format(
                     service=service
