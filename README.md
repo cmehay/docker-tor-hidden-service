@@ -19,3 +19,9 @@ $ docker run -ti --link something --volume /path/to/keys:/var/lib/tor/hidden_ser
 ```
 
 Look at the `docker-compose.yml` file to see own to use it.
+
+### pyentrypoint
+
+This container is using [`pyentrypoint`](https://github.com/cmehay/pyentrypoint) to generate its setup.
+
+If you need to use the legacy version, please checkout to the `legacy` branch or pull `goldy/tor-hidden-service:legacy`.

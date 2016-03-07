@@ -4,7 +4,12 @@ tor:
   image: goldy/tor-hidden-service
   links:
     - hello
+    - world
 
 hello:
   image: tutum/hello-world
-  hostname: hello-world
+  hostname: hello
+
+world:
+  image: tutum/hello-world
+  hostname: world
