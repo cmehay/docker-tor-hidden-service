@@ -1,0 +1,12 @@
+{% for container in containers %}
+HiddenServiceDir /var/lib/tor/hidden_service/{{container.names[0]}}
+{% for link in container.links %}
+HiddenServicePort {{link.port}} {{link.ip}}:{{link.port}}
+{% endfor %}
+{% endfor %}
+
+{% if 'RELAY' in environ %}
+ORPort 9001
+{% endif %}
+
+SocksPort 0

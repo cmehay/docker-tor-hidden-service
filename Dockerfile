@@ -1,23 +1,20 @@
 FROM  debian:jessie
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV HOME /var/lib/tor
 
-RUN   apt-get update && apt-get install -y \
+RUN   apt-get update && apt-get install --no-install-recommends -y \
         tor \
-        python3 \
-        git \
-        ca-certificates
+        python3-pip
 
-ADD   assets/docker-entrypoint.sh /
-ADD   assets/tor_config.py /
+RUN   pip3 install pyentrypoint==0.2.1
 
-RUN   chmod +x /docker-entrypoint.sh
-
-RUN   git clone https://github.com/cmehay/python-docker-tool.git /docker --branch=old
-RUN   touch /docker/__init__.py
+ADD   assets/entrypoint-config.yml /
+ADD   assets/display_onions.py /
+ADD   assets/torrc /etc/tor/torrc
 
 VOLUME  ["/var/lib/tor/hidden_service/"]
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["pyentrypoint"]
 
 CMD   ["tor"]
