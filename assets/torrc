@@ -5,7 +5,7 @@ HiddenServicePort {{link.port}} {{link.ip}}:{{link.port}}
 {% endfor %}
 {% endfor %}
 
-{% if 'RELAY' in environ %}
+{% if 'RELAY' in env %}
 ORPort 9001
 {% endif %}
 
