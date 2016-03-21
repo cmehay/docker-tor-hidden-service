@@ -8,7 +8,7 @@ config_files:
 
 post_conf_commands:
     - timeout 3s tor > /dev/null || true
-    - python3 /display_onions.py
+    - onions
     - chown -R debian-tor:debian-tor $HOME
 
 debug: false
