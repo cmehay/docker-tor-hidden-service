@@ -20,6 +20,12 @@ $ docker run -ti --link something --volume /path/to/keys:/var/lib/tor/hidden_ser
 
 Look at the `docker-compose.yml` file to see how to use it.
 
+### Setup port
+
+By default, ports are the same as linked containers, but a default port can be mapped using `PORT_MAP` environment variable.
+
+__Caution__: Using `PORT_MAP` with multiple ports on single service will cause `tor` to fail.
+
 ### Tools
 
 A command line tool `onions` is available in container to get `.onion` url when container is running.
@@ -27,12 +33,12 @@ A command line tool `onions` is available in container to get `.onion` url when 
 ```sh
 # Get services
 $ docker exec -ti torhiddenproxy_tor_1 onions
-hello: vegm3d7q64gutl75.onion
-world: b2sflntvdne63amj.onion
+hello: vegm3d7q64gutl75.onion:80
+world: b2sflntvdne63amj.onion:80
 
 # Get json
 $ docker exec -ti torhiddenproxy_tor_1 onions --json
-{"world": "b2sflntvdne63amj.onion", "hello": "vegm3d7q64gutl75.onion"}
+{"hello": ["b2sflntvdne63amj.onion:80"], "world": ["vegm3d7q64gutl75.onion:80"]}
 ```
 
 

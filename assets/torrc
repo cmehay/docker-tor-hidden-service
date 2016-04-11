@@ -1,7 +1,9 @@
 {% for container in containers %}
 HiddenServiceDir /var/lib/tor/hidden_service/{{container.names[0]}}
 {% for link in container.links %}
-HiddenServicePort {{link.port}} {{link.ip}}:{{link.port}}
+{% set port = env['PORT_MAP'] if 'PORT_MAP' in env else link.port %}
+# PORT {{container.names[0]}} {{port}}
+HiddenServicePort {{port}} {{link.ip}}:{{link.port}}
 {% endfor %}
 {% endfor %}
 
