@@ -1,8 +1,8 @@
 # docker-compose.yml example
 
 tor:
-  image: goldy/tor-hidden-service
-  # build: .
+  # image: goldy/tor-hidden-service
+  build: .
   links:
     - hello
     - world
