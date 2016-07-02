@@ -4,7 +4,7 @@ Create a tor hidden service with a link
 
 ```sh
 # run a container with a network application
-$ docker run -d --name hello_world tutum/hello_world
+$ docker run -d --name hello_world tutum/hello-world
 
 # and just link it to this container
 $ docker run -ti --link hello_world goldy/tor-hidden-service
