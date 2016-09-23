@@ -7,7 +7,7 @@ RUN   apt-get update && apt-get install --no-install-recommends -y \
         tor \
         python3-pip
 
-RUN   pip3 install pyentrypoint==0.3.7
+RUN   pip3 install pyentrypoint==0.3.8
 
 ADD   assets/entrypoint-config.yml /
 ADD   assets/onions /usr/local/src/onions

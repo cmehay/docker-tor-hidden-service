@@ -3,8 +3,12 @@ command: tor
 user: debian-tor
 group: debian-tor
 
-config_files:
-    - /etc/tor/torrc
+secret_env:
+    - '*_KEY'
+    - '*_PORTS'
+
+pre_conf_commands:
+    - onions --setup-hosts
 
 post_conf_commands:
     - timeout 3s tor > /dev/null || true
