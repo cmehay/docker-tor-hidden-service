@@ -3,16 +3,96 @@
 import os
 from json import dumps
 
+from re import match
+
+from pyentrypoint import DockerLinks
+
 import argparse
 
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
 
-class Onions(object):
-    """Onions"""
+
+class Setup(object):
 
     hidden_service_dir = "/var/lib/tor/hidden_service/"
+    torrc = '/etc/tor/torrc'
+
+    def _add_host(self, host):
+        if host not in self.setup:
+            self.setup[host] = {}
+
+    def _get_ports(self, host, ports):
+        self._add_host(host)
+        if 'ports' not in self.setup[host]:
+            self.setup[host]['ports'] = []
+        port = [int(p) for p in ports.split(':')]
+        assert len(port) == 2
+        if port not in self.setup[host]['ports']:
+            self.setup[host]['ports'].append(port)
+
+    def _get_key(self, host, key):
+        self._add_host(host)
+        assert len(key) > 800
+        self.setup[host]['key'] = key
+
+    def _get_setup_from_env(self):
+        match_map = (
+            (r'([A-Z0-9]*)_PORTS', self._get_ports),
+            (r'([A-Z0-9]*)_KEY', self._get_key),
+        )
+        for key, val in os.environ.items():
+            for reg, call in match_map:
+                m = match(reg, key)
+                if m:
+                    call(m.groups()[0].lower(), val)
+
+    def _get_setup_from_links(self):
+        containers = DockerLinks().to_containers()
+        if not containers:
+            return
+        for container in containers:
+            host = container.names[0]
+            self._add_host(host)
+            for link in container.links:
+                if link.protocol != 'tcp':
+                    continue
+                port_map = os.environ.get('PORT_MAP')
+                self._get_ports(host, '{exposed}:{internal}'.format(
+                    exposed=port_map or link.port,
+                    internal=link.port,
+                ))
+
+    def _set_keys(self):
+        for link, conf in self.setup.items():
+            if 'key' in conf:
+                serv_dir = os.path.join(self.hidden_service_dir, link)
+                os.makedirs(serv_dir, exist_ok=True)
+                with open(os.path.join(serv_dir, 'private_key'), 'w') as f:
+                    f.write(conf['key'])
+
+    def _set_conf(self):
+        env = Environment(loader=FileSystemLoader('/'))
+        temp = env.get_template(self.torrc)
+        with open(self.torrc, mode='w') as f:
+            f.write(temp.render(setup=self.setup,
+                                env=os.environ))
+
+    def setup_hosts(self):
+        self.setup = {}
+        try:
+            self._get_setup_from_env()
+            self._get_setup_from_links()
+            self._set_keys()
+            self._set_conf()
+        except:
+            raise Exception('Something wrongs with setup')
+
+
+class Onions(Setup):
+    """Onions"""
 
     def __init__(self):
-        self._get_onions()
         if 'HIDDEN_SERVICE_DIR' in os.environ:
             self.hidden_service_dir = os.environ['HIDDEN_SERVICE_DIR']
 
@@ -21,7 +101,7 @@ class Onions(object):
         with open(filename, 'r') as hostfile:
             onion = str(hostfile.read()).strip()
 
-        with open('/etc/tor/torrc', 'r') as torfile:
+        with open(self.torrc, 'r') as torfile:
             self.onions[service] = []
             for line in torfile.readlines():
                 find = '# PORT {name}'.format(name=service)
@@ -33,7 +113,7 @@ class Onions(object):
                         )
                     )
 
-    def _get_onions(self):
+    def get_onions(self):
         self.onions = {}
         for root, dirs, _ in os.walk(self.hidden_service_dir,
                                      topdown=False):
@@ -60,8 +140,15 @@ def main():
     parser.add_argument('--json', dest='json', action='store_true',
                         help='serialize to json')
 
+    parser.add_argument('--setup-hosts', dest='setup', action='store_true',
+                        help='Setup hosts')
+
     args = parser.parse_args()
     onions = Onions()
+    if args.setup:
+        onions.setup_hosts()
+        return
+    onions.get_onions()
     if args.json:
         print(onions.to_json())
     else:
