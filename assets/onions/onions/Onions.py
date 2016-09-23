@@ -12,11 +12,31 @@ import argparse
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
+import socket
+
+from Crypto.PublicKey import RSA
+from hashlib import sha1
+from base64 import b32encode
+
 
 class Setup(object):
 
     hidden_service_dir = "/var/lib/tor/hidden_service/"
-    torrc = '/etc/tor/torrc'
+    torrc = '/usr/local/etc/tor/torrc'
+    torrc_template = '/var/local/tor/torrc.tpl'
+
+    def onion_url_gen(self, key):
+        "Get onion url from private key"
+
+        # Convert private RSA to public DER
+        priv = RSA.importKey(key.strip())
+        der = priv.publickey().exportKey("DER")
+
+        # hash key, keep first half of sha1, base32 encode
+        onion = b32encode(sha1(der[22:]).digest()[:10])
+
+        return '{onion}.onion'.format(onion=onion.decode().lower())
+
 
     def _add_host(self, host):
         if host not in self.setup:
@@ -30,6 +50,10 @@ class Setup(object):
         assert len(port) == 2
         if port not in self.setup[host]['ports']:
             self.setup[host]['ports'].append(port)
+
+    def _get_ip(self):
+        for host in self.setup:
+            self.setup[host]['ip'] = str(socket.gethostbyname(host))
 
     def _get_key(self, host, key):
         self._add_host(host)
@@ -68,12 +92,17 @@ class Setup(object):
             if 'key' in conf:
                 serv_dir = os.path.join(self.hidden_service_dir, link)
                 os.makedirs(serv_dir, exist_ok=True)
+                os.chmod(serv_dir, 0o700)
                 with open(os.path.join(serv_dir, 'private_key'), 'w') as f:
                     f.write(conf['key'])
+                    os.fchmod(f.fileno(), 0o600)
+                with open(os.path.join(serv_dir, 'hostname'), 'w') as f:
+                    f.write(self.onion_url_gen(conf['key']))
+
 
     def _set_conf(self):
         env = Environment(loader=FileSystemLoader('/'))
-        temp = env.get_template(self.torrc)
+        temp = env.get_template(self.torrc_template)
         with open(self.torrc, mode='w') as f:
             f.write(temp.render(setup=self.setup,
                                 env=os.environ))
@@ -83,6 +112,7 @@ class Setup(object):
         try:
             self._get_setup_from_env()
             self._get_setup_from_links()
+            self._get_ip()
             self._set_keys()
             self._set_conf()
         except:
