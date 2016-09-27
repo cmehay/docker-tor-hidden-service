@@ -5,7 +5,6 @@ version: "2"
 services:
   tor:
     image: goldy/tor-hidden-service
-    # or
     build: .
     links:
       - hello

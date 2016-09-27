@@ -2,7 +2,7 @@
 HiddenServiceDir /var/lib/tor/hidden_service/{{service}}
 {% for ports in conf['ports'] %}
 # PORT {{service}} {{ports[0]}}
-HiddenServicePort {{ports[0]}} {{service}}:{{ports[1]}}
+HiddenServicePort {{ports[0]}} {{conf['ip']}}:{{ports[1]}}
 {% endfor %}
 {% endfor %}
 

@@ -2,8 +2,6 @@
 
 tor:
   image: goldy/tor-hidden-service
-  # or
-  build: .
   links:
     - hello
     - world
