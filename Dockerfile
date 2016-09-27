@@ -8,7 +8,12 @@ RUN     apk add --no-cache git libevent-dev openssl-dev gcc make automake ca-cer
         git clone https://git.torproject.org/tor.git /usr/local/src/tor && \
         cd /usr/local/src/tor && \
         git checkout tor-${TOR_VERSION} && \
-        ./autogen.sh && ./configure --disable-asciidoc && make && make install && \
+        ./autogen.sh && \
+        ./configure \
+            --disable-asciidoc \
+            --sysconfdir=/etc \
+            --disable-unittests && \
+        make && make install && \
         cd .. && \
         rm -rf tor && \
         apk add --no-cache python3 python3-dev && \
