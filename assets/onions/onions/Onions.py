@@ -22,7 +22,7 @@ from base64 import b32encode
 class Setup(object):
 
     hidden_service_dir = "/var/lib/tor/hidden_service/"
-    torrc = '/usr/local/etc/tor/torrc'
+    torrc = '/etc/tor/torrc'
     torrc_template = '/var/local/tor/torrc.tpl'
 
     def onion_url_gen(self, key):
@@ -36,7 +36,6 @@ class Setup(object):
         onion = b32encode(sha1(der[22:]).digest()[:10])
 
         return '{onion}.onion'.format(onion=onion.decode().lower())
-
 
     def _add_host(self, host):
         if host not in self.setup:
