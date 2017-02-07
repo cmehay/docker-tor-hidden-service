@@ -98,7 +98,6 @@ class Setup(object):
                 with open(os.path.join(serv_dir, 'hostname'), 'w') as f:
                     f.write(self.onion_url_gen(conf['key']))
 
-
     def _set_conf(self):
         env = Environment(loader=FileSystemLoader('/'))
         temp = env.get_template(self.torrc_template)
