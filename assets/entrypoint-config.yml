@@ -15,4 +15,8 @@ post_conf_commands:
     - onions
     - chown -R tor:tor $HOME
 
+reload:
+    files:
+        - /etc/torrc
+
 debug: false
