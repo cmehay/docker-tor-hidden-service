@@ -11,7 +11,7 @@ services:
       - world
     environment:
         # Set mapping ports
-        HELLO_PORTS: 80:80
+        HELLO_PORTS: 80:80,800:80,8888:80
         # Set private key
         HELLO_KEY: |
             -----BEGIN RSA PRIVATE KEY-----
@@ -34,7 +34,7 @@ services:
 
     # Keep keys in volumes
     volumes:
-      - ./keys:/var/lib/tor/hidden_service/
+      - tor-keys:/var/lib/tor/hidden_service/
 
   hello:
     image: tutum/hello-world
@@ -43,3 +43,7 @@ services:
   world:
     image: tutum/hello-world
     hostname: world
+
+volumes:
+    tor-keys:
+        driver: local

@@ -72,7 +72,8 @@ environment:
     # Set mapping ports
     HELLO_PORTS: 80:80
 
-    WORLD_PORTS: 8000:80
+    # Multiple ports can be coma separated
+    WORLD_PORTS: 8000:80,8888:80,22:22
 
 ```
 

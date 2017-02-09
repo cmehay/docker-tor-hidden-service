@@ -17,6 +17,6 @@ post_conf_commands:
 
 reload:
     files:
-        - /etc/torrc
+        - /etc/tor/torrc
 
 debug: false
