@@ -101,7 +101,7 @@ $ docker exec -ti torhiddenproxy_tor_1 onions --json
 
 ### Auto reload
 
-Changing `/etc/torrc` file trigger a `SIGHUP` signal to `tor` to reload configuration.
+Changing `/etc/tor/torrc` file trigger a `SIGHUP` signal to `tor` to reload configuration.
 
 To disable this behavior, add `ENTRYPOINT_DISABLE_RELOAD` in environment.
 
