@@ -1,8 +1,9 @@
 {% for service, conf in setup.items() %}
 HiddenServiceDir /var/lib/tor/hidden_service/{{service}}
 {% for ports in conf['ports'] %}
+{% set map = ports[1] if type(ports[1]) != int else '{service}:{port}'.format(service=service, port=ports[1]) %}
 # PORT {{service}} {{ports[0]}}
-HiddenServicePort {{ports[0]}} {{service}}:{{ports[1]}}
+HiddenServicePort {{ports[0]}} {{map}}
 {% endfor %}
 {% endfor %}
 

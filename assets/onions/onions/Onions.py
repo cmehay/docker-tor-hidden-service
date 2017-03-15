@@ -45,15 +45,16 @@ class Setup(object):
         self._add_host(host)
         if 'ports' not in self.setup[host]:
             self.setup[host]['ports'] = []
-        ports_l = [[int(v) for v in sp.split(':')] for sp in ports.split(',')]
+        ports_l = [
+            [
+                int(v) if not v.startswith('unix:') else v
+                for v in sp.split(':', 1)
+            ] for sp in ports.split(',')
+        ]
         for port in ports_l:
             assert len(port) == 2
             if port not in self.setup[host]['ports']:
                 self.setup[host]['ports'].append(port)
-
-    def _get_ip(self):
-        for host in self.setup:
-            self.setup[host]['ip'] = str(socket.gethostbyname(host))
 
     def _get_key(self, host, key):
         self._add_host(host)
@@ -104,14 +105,15 @@ class Setup(object):
         temp = env.get_template(self.torrc_template)
         with open(self.torrc, mode='w') as f:
             f.write(temp.render(setup=self.setup,
-                                env=os.environ))
+                                env=os.environ,
+                                type=type,
+                                int=int))
 
     def setup_hosts(self):
         self.setup = {}
         try:
             self._get_setup_from_env()
             self._get_setup_from_links()
-            self._get_ip()
             self._set_keys()
             self._set_conf()
         except:

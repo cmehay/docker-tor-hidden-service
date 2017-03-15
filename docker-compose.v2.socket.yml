@@ -1,0 +1,37 @@
+# docker version 2 example
+
+version: "2"
+
+services:
+  tor:
+    image: goldy/tor-hidden-service
+    build: .
+    links:
+      - world
+    environment:
+        # Set mapping port to unix socket
+        WORLD_PORTS: 80:unix:/var/run/nginx.sock
+
+    # Mount socket directory from world container
+    volumes_from:
+        - world
+
+    # Keep keys in volumes
+    volumes:
+      - tor-keys:/var/lib/tor/hidden_service/
+
+  world:
+    image: tutum/hello-world
+    hostname: world
+    # You can disable network to increase security
+    network_mode: none
+    command: |
+        sh -c 'php-fpm -d variables_order="EGPCS" &&
+        sed -i "s|80|unix:/var/run/nginx.sock|" /etc/nginx/nginx.conf &&
+        exec nginx -g "daemon off;"'
+    volumes:
+        - /var/run
+
+volumes:
+    tor-keys:
+        driver: local
