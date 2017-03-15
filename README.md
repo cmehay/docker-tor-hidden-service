@@ -68,6 +68,7 @@ Like docker, first port is exposed port and the second one is service internal p
 links:
   - hello
   - world
+  - hey
 environment:
     # Set mapping ports
     HELLO_PORTS: 80:80
@@ -75,10 +76,19 @@ environment:
     # Multiple ports can be coma separated
     WORLD_PORTS: 8000:80,8888:80,22:22
 
+    # Socket mapping is supported
+    HEY_PORTS: 80:unix:/var/run/socket.sock
+
 ```
 
-__DEPECATED:__
+__DEPRECATED:__
 By default, ports are the same as linked containers, but a default port can be mapped using `PORT_MAP` environment variable.
+
+#### Socket
+
+To increase security, it's possible to setup your service through socket between containers and turn off network in your app container. See `docker-compose.v2.sock.yml` for an example.
+
+__Warning__: Due to a bug in `tor` configuration parser, it's not possible to mix network link and socket link in the same `tor` configuration.
 
 ### Compose v2 support
 
