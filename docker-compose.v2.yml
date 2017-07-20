@@ -9,6 +9,7 @@ services:
     links:
       - hello
       - world
+      - again
     environment:
         # Set mapping ports
         HELLO_PORTS: 80:80,800:80,8888:80
@@ -32,6 +33,12 @@ services:
 
         WORLD_PORTS: 8000:80
 
+        AGAIN_PORTS: 88:80
+
+        # hello and again will share the same onion_adress
+        AGAIN_SERVICE_NAME: foo
+        HELLO_SERVICE_NAME: foo
+
     # Keep keys in volumes
     volumes:
       - tor-keys:/var/lib/tor/hidden_service/
@@ -43,6 +50,10 @@ services:
   world:
     image: tutum/hello-world
     hostname: world
+
+  again:
+    image: tutum/hello-world
+    hostname: again
 
 volumes:
     tor-keys:
