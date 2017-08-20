@@ -1,12 +1,11 @@
 'This class define a service link'
+import logging
+import os
+import re
+from base64 import b32encode
+from hashlib import sha1
 
 from Crypto.PublicKey import RSA
-from hashlib import sha1
-from base64 import b32encode
-
-import os
-
-import logging
 
 
 class ServicesGroup(object):
@@ -18,6 +17,9 @@ class ServicesGroup(object):
     hidden_service_dir = "/var/lib/tor/hidden_service/"
 
     def __init__(self, name=None, service=None, hidden_service_dir=None):
+
+        name_regex = r'^[a-zA-Z0-9-_]+$'
+
         self.hidden_service_dir = hidden_service_dir or self.hidden_service_dir
         if not name and not service:
             raise Exception(
@@ -25,6 +27,10 @@ class ServicesGroup(object):
             )
         self.services = []
         self.name = name or service.host
+        if not re.match(name_regex, self.name):
+            raise Exception(
+                'Group {name} has invalid name'.format(name=self.name)
+            )
         if service:
             self.add_service(service)
 

@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
-
-import os
-from json import dumps
-
-from re import match
-
-from pyentrypoint import DockerLinks
-
 import argparse
+import logging
+import os
+import sys
+from json import dumps
+from re import match
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from pyentrypoint import DockerLinks
 
-from .Service import ServicesGroup, Service
-
-import logging
+from .Service import Service
+from .Service import ServicesGroup
 
 
 class Setup(object):
@@ -163,13 +160,10 @@ class Setup(object):
 
     def setup_hosts(self):
         self.setup = {}
-        try:
-            self._get_setup_from_env()
-            self._get_setup_from_links()
-            self.check_services()
-            self.apply_conf()
-        except BaseException:
-            raise Exception('Something wrongs with setup')
+        self._get_setup_from_env()
+        self._get_setup_from_links()
+        self.check_services()
+        self.apply_conf()
 
     def check_services(self):
         for group in self.services:
@@ -263,15 +257,26 @@ def main():
                         help='Setup hosts')
 
     args = parser.parse_args()
-    onions = Onions()
-    if args.setup:
-        onions.setup_hosts()
-        return
-    onions.torrc_parser()
+    try:
+        onions = Onions()
+        if args.setup:
+            onions.setup_hosts()
+        else:
+            onions.torrc_parser()
+    except BaseException as e:
+        error_msg = str(e)
+    else:
+        error_msg = None
     if args.json:
+        if error_msg:
+            print(dumps({'error': error_msg}))
+            sys.exit(1)
         logging.getLogger().setLevel(logging.ERROR)
         print(onions.to_json())
     else:
+        if error_msg:
+            logging.error(error_msg)
+            sys.exit(1)
         print(onions)
 
 

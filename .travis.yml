@@ -4,5 +4,7 @@ python:
     - "3.4"
     - "3.5"
     - "3.6"
-install: pip install tox-travis
-script: tox
+install: pip install tox-travis pre-commit
+script:
+    - pre-commit run --all-files
+    - tox

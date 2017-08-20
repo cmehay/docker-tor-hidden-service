@@ -33,7 +33,7 @@ setup(
 
     install_requires=['pyentrypoint==0.5.0',
                       'Jinja2>=2.8',
-                      'pycrypto',],
+                      'pycrypto', ],
 
     entry_points={
         'console_scripts': [

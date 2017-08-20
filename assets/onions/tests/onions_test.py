@@ -1,13 +1,13 @@
-from onions import Onions
-
 import json
 import os
-import pytest
 import re
-
-from Crypto.PublicKey import RSA
-from hashlib import sha1
 from base64 import b32encode
+from hashlib import sha1
+
+import pytest
+from Crypto.PublicKey import RSA
+from onions import Onions
+
 
 def get_key_and_onion():
     key = '''
@@ -40,6 +40,7 @@ bhJ3M9WzP/EMkAzyW8mVs1moFp3hRcfQlZHl6g1U9D8=
 
     return key.strip(), onion
 
+
 def get_torrc_template():
     return r'''
 {% for service_group in services %}
@@ -64,6 +65,7 @@ SocksPort 0
 
 # useless line for Jinja bug
     '''.strip()
+
 
 def test_ports(monkeypatch):
     env = {
@@ -103,6 +105,7 @@ def test_ports(monkeypatch):
             assert service.ports[0].is_socket
 
     assert check == 10
+
 
 def test_docker_links(fs, monkeypatch):
 
@@ -185,6 +188,7 @@ def test_key(monkeypatch):
     assert len(onion.services) == 1
 
     assert onion.services[0].onion_url == onion_url
+
 
 def test_key_in_secret(fs, monkeypatch):
     env = {
@@ -284,6 +288,7 @@ def test_configuration(fs, monkeypatch):
                 (port.port_from, port.dest) for port in service.ports
             ) == set([(80, 'unix://unix.socket')])
 
+
 def test_groups(monkeypatch):
     env = {
         'SERVICE1_SERVICE_NAME': 'group1',
@@ -323,6 +328,7 @@ def test_groups(monkeypatch):
 
         assert re.match(onion_match, group.onion_url)
 
+
 def test_json(monkeypatch):
     env = {
         'SERVICE1_SERVICE_NAME': 'group1',
@@ -345,6 +351,7 @@ def test_json(monkeypatch):
     assert len(jsn['group1']) == 3
     assert len(jsn['group2']) == 1
 
+
 def test_output(monkeypatch):
     env = {
         'SERVICE1_SERVICE_NAME': 'group1',
@@ -362,6 +369,7 @@ def test_output(monkeypatch):
 
     for item in ['group1', 'group2', '.onion', ',']:
         assert item in str(onion)
+
 
 def test_not_valid_share_port(monkeypatch):
     env = {
@@ -381,6 +389,7 @@ def test_not_valid_share_port(monkeypatch):
     with pytest.raises(Exception) as excinfo:
         onion.check_services()
         assert 'Same port for multiple services' in str(excinfo.value)
+
 
 def test_not_valid_no_services(monkeypatch):
     env = {
