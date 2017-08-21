@@ -1,6 +1,6 @@
 # docker-tor-hidden-service
 
-!https://travis-ci.org/cmehay/docker-tor-hidden-service.svg?branch=master!:https://travis-ci.org/cmehay/docker-tor-hidden-service
+[![Build Status](https://travis-ci.org/cmehay/docker-tor-hidden-service.svg?branch=master)](https://travis-ci.org/cmehay/docker-tor-hidden-service)
 
 Create a tor hidden service with a link
 
