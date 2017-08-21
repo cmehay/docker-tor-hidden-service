@@ -90,9 +90,45 @@ To increase security, it's possible to setup your service through socket between
 
 __Warning__: Due to a bug in `tor` configuration parser, it's not possible to mix network link and socket link in the same `tor` configuration.
 
+### Group services
+
+Multiple services can be hosted behind the same onion address.
+
+```yaml
+links:
+  - hello
+  - world
+  - hey
+environment:
+    # Set mapping ports
+    HELLO_PORTS: 80:80
+
+    # Multiple ports can be coma separated
+    WORLD_PORTS: 8000:80,8888:80,22:22
+
+    # Socket mapping is supported
+    HEY_PORTS: 80:unix:/var/run/socket.sock
+
+    # hello and world will share the same onion address
+    # Service name can be any string as long there is not special char
+    HELLO_SERVICE_NAME: foo
+    WORLD_SERVICE_NAME: foo
+
+```
+
+__Warning__: Be carefull to not use the same exposed ports for grouped services.
+
 ### Compose v2 support
 
 Links setting are required when using docker-compose v2. See `docker-compose.v2.yml` for example.
+
+### Copose v3 support and secrets
+
+Links setting are required when using docker-compose v3. See `docker-compose.v3.yml` for example.
+
+#### Secrets
+
+Secret key can be set through docker `secrets`, see `docker-compose.v3.yml` for example.
 
 ### Tools
 

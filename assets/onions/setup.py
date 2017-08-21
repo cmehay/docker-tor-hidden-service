@@ -6,7 +6,7 @@ from setuptools import setup
 setup(
     name='onions',
 
-    version='0.2',
+    version='0.4',
 
     packages=find_packages(),
 
@@ -31,9 +31,9 @@ setup(
         "Topic :: System :: Installation/Setup",
     ],
 
-    install_requires=['pyentrypoint',
+    install_requires=['pyentrypoint==0.5.0',
                       'Jinja2>=2.8',
-                      'pycrypto',],
+                      'pycrypto', ],
 
     entry_points={
         'console_scripts': [

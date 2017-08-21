@@ -6,13 +6,12 @@ group: tor
 secret_env:
     - '*_KEY'
     - '*_PORTS'
+    - '*_SERVICE_NAME'
 
 pre_conf_commands:
     - onions --setup-hosts
 
 post_conf_commands:
-    - timeout -t 3 tor > /dev/null || true
-    - onions
     - chown -R tor:tor $HOME
 
 reload:

@@ -22,13 +22,17 @@ RUN     apk add --no-cache git libevent-dev openssl-dev gcc make automake ca-cer
         apk del git libevent-dev openssl-dev make automake python3-dev gcc autoconf musl-dev coreutils && \
         apk add --no-cache libevent openssl
 
+RUN     mkdir -p /etc/tor/
+
+RUN     pip install pyentrypoint==0.5.0
+
+# Delete me
+RUN     pip install 'Jinja2>=2.8' 'pycrypto'
+
 ADD     assets/entrypoint-config.yml /
 ADD     assets/onions /usr/local/src/onions
 ADD     assets/torrc /var/local/tor/torrc.tpl
 
-RUN     mkdir -p /etc/tor/
-
-RUN     pip install pyentrypoint==0.5.0
 
 RUN     cd /usr/local/src/onions && python3 setup.py install
 

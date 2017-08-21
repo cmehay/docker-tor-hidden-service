@@ -1,9 +1,14 @@
-{% for service, conf in setup.items() %}
-HiddenServiceDir /var/lib/tor/hidden_service/{{service}}
-{% for ports in conf['ports'] %}
-{% set map = ports[1] if type(ports[1]) != int else '{service}:{port}'.format(service=service, port=ports[1]) %}
-# PORT {{service}} {{ports[0]}}
-HiddenServicePort {{ports[0]}} {{map}}
+{% for service_group in services %}
+HiddenServiceDir /var/lib/tor/hidden_service/{{service_group.name}}
+{% for service in service_group.services %}
+{% for port in service.ports %}
+{% if port.is_socket %}
+HiddenServicePort {{port.port_from}} {{port.dest}}
+{% endif %}
+{% if not port.is_socket %}
+HiddenServicePort {{port.port_from}} {{service.host}}:{{port.dest}}
+{% endif %}
+{% endfor %}
 {% endfor %}
 {% endfor %}
 
@@ -12,3 +17,5 @@ ORPort 9001
 {% endif %}
 
 SocksPort 0
+
+# useless line for Jinja bug
