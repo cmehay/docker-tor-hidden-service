@@ -118,6 +118,8 @@ class ServicesGroup(object):
     def load_key_from_secrets(self):
         'Load key from docker secret using service name'
         secret_file = os.path.join('/run/secrets', self.name)
+        if not os.path.exists(secret_file):
+            return
         try:
             self._load_key(secret_file)
             self._key_in_secrets = True

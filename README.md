@@ -122,6 +122,14 @@ __Warning__: Be carefull to not use the same exposed ports for grouped services.
 
 Links setting are required when using docker-compose v2. See `docker-compose.v2.yml` for example.
 
+### Copose v3 support and secrets
+
+Links setting are required when using docker-compose v3. See `docker-compose.v3.yml` for example.
+
+#### Secrets
+
+Secret key can be set through docker `secrets`, see `docker-compose.v3.yml` for example.
+
 ### Tools
 
 A command line tool `onions` is available in container to get `.onion` url when container is running.
