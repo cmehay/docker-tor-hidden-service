@@ -2,7 +2,7 @@ FROM    alpine
 
 ENV     HOME /var/lib/tor
 
-RUN     apk add --no-cache git libevent-dev openssl-dev gcc make automake ca-certificates autoconf musl-dev coreutils && \
+RUN     apk add --no-cache git libevent-dev openssl-dev gcc make automake ca-certificates autoconf musl-dev coreutils zlib zlib-dev && \
         mkdir -p /usr/local/src/ && \
         git clone https://git.torproject.org/tor.git /usr/local/src/tor && \
         cd /usr/local/src/tor && \
