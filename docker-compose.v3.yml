@@ -4,23 +4,19 @@ version: "3.1"
 
 services:
   tor:
-    image: goldy/tor-hidden-service
-    build: .
+    image: goldy/tor-hidden-service:$TOR_VERSION
     links:
       - hello
       - world
       - again
     environment:
-        # Set mapping ports
-        HELLO_PORTS: 80:80,800:80,8888:80
+        # Set version 3 on BAR group
+        BAR_TOR_SERVICE_HOSTS: '80:hello:80,88:world:80'
+        BAR_TOR_SERVICE_VERSION: '3'
 
-        WORLD_PORTS: 8000:80
+        # hello and again will share the same v2 onion_adress
+        FOO_TOR_SERVICE_HOSTS: '88:again:80,80:hello:80,800:hello:80,8888:hello:80'
 
-        AGAIN_PORTS: 88:80
-
-        # hello and again will share the same onion_adress
-        AGAIN_SERVICE_NAME: foo
-        HELLO_SERVICE_NAME: foo
 
     # Keep keys in volumes
     volumes:
@@ -30,6 +26,9 @@ services:
     secrets:
       - source: foo
         target: foo
+        mode: 0400
+      - source: bar
+        target: bar
         mode: 0400
 
   hello:
@@ -50,4 +49,6 @@ volumes:
 
 secrets:
     foo:
-        file: ./foo_private_key
+        file: ./private_key_foo_v2
+    bar:
+        file: ./private_key_bar_v3

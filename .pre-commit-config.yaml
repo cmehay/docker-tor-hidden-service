@@ -1,5 +1,6 @@
+repos:
 -   repo: git://github.com/pre-commit/pre-commit-hooks
-    sha: v0.9.1
+    rev: v2.2.1
     hooks:
     -   id: check-added-large-files
     -   id: check-docstring-first
@@ -10,12 +11,14 @@
         args:
             - --exclude=__init__.py
         language_version: python3
-    -   id: autopep8-wrapper
-        language_version: python3
     -   id: requirements-txt-fixer
     -   id: trailing-whitespace
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: 'v1.4.4'
+    hooks:
+    -   id: autopep8
 -   repo: git://github.com/asottile/reorder_python_imports
-    sha: v0.3.5
+    rev: v1.4.0
     hooks:
     -   id: reorder-python-imports
         language_version: python3

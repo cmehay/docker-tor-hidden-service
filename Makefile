@@ -1,23 +1,28 @@
+.EXPORT_ALL_VARIABLES:
+
+TOR_VERSION = $(shell bash last_tor_version.sh)
+
 test:
 	tox
+
+tag:
+	git tag v$(TOR_VERSION)
 
 check:
 	pre-commit run --all-files
 
 build:
-	docker-compose build
+	- echo build with tor version $(TOR_VERSION)
+	docker-compose -f docker-compose.build.yml build
+
+rebuild:
+	docker-compose -f docker-compose.build.yml build --no-cache
 
 run: build
-	docker-compose up
+	docker-compose -f docker-compose-v1.yml up
 
-build-v2:
-	docker-compose -f docker-compose.v2.yml build
-
-run-v2: build-v2
+run-v2: build
 	docker-compose -f docker-compose.v2.yml up
 
-build-v3:
-	docker-compose -f docker-compose.v3.yml build
-
-run-v3: build-v3
+run-v3: build
 	docker-compose -f docker-compose.v3.yml up
