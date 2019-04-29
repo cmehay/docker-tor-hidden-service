@@ -3,6 +3,7 @@ import argparse
 import logging
 import os
 import sys
+from base64 import b64decode
 from json import dumps
 from re import match
 
@@ -46,6 +47,10 @@ class Setup(object):
         assert len(key) > 800
         self.setup[host]['key'] = key
 
+    def _load_keys_in_services(self):
+        for service in self.services:
+            service.load_key()
+
     def _get_service(self, host, service):
         self._add_host(host)
         self.setup[host]['service'] = service
@@ -66,30 +71,39 @@ class Setup(object):
             if service:
                 return service
 
-    def add_empty_group(self, name):
+    def add_empty_group(self, name, version=None):
         if self.find_group_by_name(name):
             raise Exception('Group {name} already exists'.format(name=name))
-        group = ServicesGroup(name=name)
+        group = ServicesGroup(name=name, version=version)
         self.services.append(group)
         return group
 
-    def add_new_service(self, host, name=None, ports=None, key=None):
+    def add_new_service(self,
+                        host,
+                        name=None,
+                        ports=None,
+                        key=None):
         group = self.find_group_by_name(name)
-        service = self.find_service_by_host(host)
+        if group:
+            service = group.get_service_by_host(host)
+        else:
+            service = self.find_service_by_host(host)
         if not service:
             service = Service(host=host)
             if not group:
                 group = ServicesGroup(
                     service=service,
                     name=name,
-                    hidden_service_dir=self.hidden_service_dir
+                    hidden_service_dir=self.hidden_service_dir,
                 )
             else:
                 group.add_service(service)
             if group not in self.services:
                 self.services.append(group)
+        elif group and service not in group.services:
+            group.add_service(service)
         else:
-            group = self.find_group_by_service(service)
+            self.find_group_by_service(service)
         if key:
             group.add_key(key)
         if ports:
@@ -108,22 +122,69 @@ class Setup(object):
         self.add_new_service(host=host, ports=ports)
 
     def _set_key(self, host, key):
-        self.add_new_service(host=host, key=key)
+        self.add_new_service(host=host, key=key.encode())
 
-    def _setup_from_env(self):
-        match_map = (
-            (r'([A-Z0-9]*)_PORTS', self._set_ports),
-            (r'([A-Z0-9]*)_KEY', self._set_key),
-        )
-        for key, val in os.environ.items():
-            for reg, call in match_map:
+    def _setup_from_env(self, match_map):
+        for reg, call in match_map:
+            for key, val in os.environ.items():
                 m = match(reg, key)
                 if m:
                     call(m.groups()[0].lower(), val)
 
+    def _setup_keys_and_ports_from_env(self):
+        self._setup_from_env(
+            (
+                (r'([A-Z0-9]+)_PORTS', self._set_ports),
+                (r'([A-Z0-9]+)_KEY', self._set_key),
+            )
+        )
+
+    def get_or_create_empty_group(self, name, version=None):
+        group = self.find_group_by_name(name)
+        if group:
+            if version:
+                group.set_version(version)
+            return group
+        return self.add_empty_group(name, version)
+
+    def _set_group_version(self, name, version):
+        'Setup groups with version'
+        group = self.get_or_create_empty_group(name, version=version)
+        group.set_version(version)
+
+    def _set_group_key(self, name, key):
+        'Set key for service group'
+        group = self.get_or_create_empty_group(name)
+        if group.version == 3:
+            group.add_key(b64decode(key))
+        else:
+            group.add_key(key)
+
+    def _set_group_hosts(self, name, hosts):
+        'Set services for service groups'
+        self.get_or_create_empty_group(name)
+        for host_map in hosts.split(','):
+            host_map = host_map.strip()
+            port_from, host, port_dest = host_map.split(':', 2)
+            if host == 'unix' and port_dest.startswith('/'):
+                self.add_new_service(host=name, name=name, ports=host_map)
+            else:
+                ports = '{frm}:{dst}'.format(frm=port_from, dst=port_dest)
+                self.add_new_service(host=host, name=name, ports=ports)
+
+    def _setup_services_from_env(self):
+        self._setup_from_env(
+            (
+                (r'([A-Z0-9]+)_TOR_SERVICE_VERSION', self._set_group_version),
+                (r'([A-Z0-9]+)_TOR_SERVICE_KEY', self._set_group_key),
+                (r'([A-Z0-9]+)_TOR_SERVICE_HOSTS', self._set_group_hosts),
+            )
+        )
+
     def _get_setup_from_env(self):
         self._set_service_names()
-        self._setup_from_env()
+        self._setup_keys_and_ports_from_env()
+        self._setup_services_from_env()
 
     def _get_setup_from_links(self):
         containers = DockerLinks().to_containers()
@@ -162,6 +223,7 @@ class Setup(object):
         self.setup = {}
         self._get_setup_from_env()
         self._get_setup_from_links()
+        self._load_keys_in_services()
         self.check_services()
         self.apply_conf()
 
@@ -201,38 +263,65 @@ class Onions(Setup):
 
     def torrc_parser(self):
 
+        self.torrc_dict = {}
+
         def parse_dir(line):
             _, path = line.split()
             group_name = os.path.basename(path)
-            group = (self.find_group_by_name(group_name)
-                     or self.add_empty_group(group_name))
-            return group
+            self.torrc_dict[group_name] = {
+                'services': [],
+            }
+            return group_name
 
-        def parse_port(line, service_group):
+        def parse_port(line, name):
             _, port_from, dest = line.split()
             service_host, port = dest.split(':')
             ports_str = '{port_from}:{dest}'
-            name = service_host
             ports_param = ports_str.format(port_from=port_from,
                                            dest=port)
             if port.startswith('/'):
-                name = service_group.name
+                service_host = name
                 ports_param = ports_str.format(port_from=port_from,
                                                dest=dest)
-            service = (service_group.get_service_by_host(name)
-                       or Service(name))
-            service.add_ports(ports_param)
-            if service not in service_group.services:
-                service_group.add_service(service)
+            self.torrc_dict[name]['services'].append({
+                'host': service_host,
+                'ports': ports_param,
+            })
+
+        def parse_version(line, name):
+            _, version = line.split()
+            self.torrc_dict[name]['version'] = int(version)
+
+        def setup_services():
+            for name, setup in self.torrc_dict.items():
+                version = setup.get('version', 2)
+                group = (self.find_group_by_name(name)
+                         or self.add_empty_group(name, version=version))
+                for service_dict in setup.get('services', []):
+                    host = service_dict['host']
+                    service = (group.get_service_by_host(host)
+                               or Service(host))
+                    service.add_ports(service_dict['ports'])
+                    if service not in group.services:
+                        group.add_service(service)
+            self._load_keys_in_services()
 
         if not os.path.exists(self.torrc):
             return
-        with open(self.torrc, 'r') as f:
-            for line in f.readlines():
-                if line.startswith('HiddenServiceDir'):
-                    service_group = parse_dir(line)
-                if line.startswith('HiddenServicePort'):
-                    parse_port(line, service_group)
+        try:
+            with open(self.torrc, 'r') as f:
+                for line in f.readlines():
+                    if line.startswith('HiddenServiceDir'):
+                        name = parse_dir(line)
+                    if line.startswith('HiddenServicePort'):
+                        parse_port(line, name)
+                    if line.startswith('HiddenServiceVersion'):
+                        parse_version(line, name)
+        except BaseException:
+            raise Exception(
+                'Fail to parse torrc file. Please check the file'
+            )
+        setup_services()
 
     def __str__(self):
         if not self.services:
@@ -257,6 +346,7 @@ def main():
                         help='Setup hosts')
 
     args = parser.parse_args()
+    logging.getLogger().setLevel(logging.WARNING)
     try:
         onions = Onions()
         if args.setup:
@@ -264,6 +354,7 @@ def main():
         else:
             onions.torrc_parser()
     except BaseException as e:
+        logging.exception(e)
         error_msg = str(e)
     else:
         error_msg = None
@@ -271,7 +362,6 @@ def main():
         if error_msg:
             print(dumps({'error': error_msg}))
             sys.exit(1)
-        logging.getLogger().setLevel(logging.ERROR)
         print(onions.to_json())
     else:
         if error_msg:
