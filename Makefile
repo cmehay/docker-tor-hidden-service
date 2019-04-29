@@ -6,7 +6,7 @@ test:
 	tox
 
 tag:
-	git tag v$(TOR_VERSION)
+	git tag v$(TOR_VERSION) -f
 
 check:
 	pre-commit run --all-files
