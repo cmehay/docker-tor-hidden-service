@@ -1,7 +1,9 @@
 # docker-compose.yml example
+# LEGACY CONFIGURATION
+# SEE README FOR INFORMATIONS
 
 tor:
-  image: goldy/tor-hidden-service
+  image: goldy/tor-hidden-service:$TOR_VERSION
   links:
     - hello
     - world
