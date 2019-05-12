@@ -73,9 +73,13 @@ hello: 5azvyr7dvvr4cldn.onion:80, 5azvyr7dvvr4cldn.onion:800, 5azvyr7dvvr4cldn.o
 
 The config patern for this variable is: `{exposed_port}:{hostname}:{port}}`
 
-For example `80:hello:8080` will expose a onion service on port 80 to the port 8080 of hello hostname.
+For example `80:hello:8080` will expose an onion service on port 80 to the port 8080 of hello hostname.
+
+Unix sockets are supported too, `80:unix://path/to/socket.sock` will expose an onion service on port 80 to the socket `/path/to/socket.sock`. See `docker-compose.v2.socket.yml` for an example.
 
 You can concatenate services using comas.
+
+> **WARNING**: Using sockets and ports in the same service group can lead to issues
 
 ##### `{SERVICE}_TOR_SERVICE_VERSION`
 
@@ -154,7 +158,7 @@ This containner uses [`pytor`](https://github.com/cmehay/pytor) to mannages tor 
 
 # Legacy deprecated doc
 
-ALL THE DOC BELLOW IS LEGACY, IT'S STILL WORKING BUT IT'S NOT RECOMMENDED ANYMORE AND COULD BE DROPPED IN FUTURE RELEASES.
+> **WARNING**: ALL THE DOC BELLOW IS LEGACY, IT'S STILL WORKING BUT IT'S NOT RECOMMENDED ANYMORE AND COULD BE DROPPED IN FUTURE RELEASES.
 
 ### Create a tor hidden service with a link
 

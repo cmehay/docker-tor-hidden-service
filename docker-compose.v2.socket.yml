@@ -9,8 +9,8 @@ services:
     links:
       - world
     environment:
-        # Set mapping port to unix socket
-        WORLD_PORTS: 80:unix:/var/run/nginx.sock
+        # Set service hosts to unix socket
+        WORLD_TOR_SERVICE_HOSTS: 80:unix://var/run/nginx.sock
 
     # Mount socket directory from world container
     volumes_from:
