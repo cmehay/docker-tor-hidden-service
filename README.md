@@ -182,7 +182,7 @@ Look at the `docker-compose.yml` file to see how to use it.
 
 ### Set private key
 
-Private key is settable by environment or by copying file in `hostname/private_key` in docket volume (`hostname` is the link name).
+Private key is settable by environment or by copying file in `hostname/private_key` in docker volume (`hostname` is the link name).
 
 It's easier to pass key in environment with `docker-compose`.
 
