@@ -19,6 +19,10 @@ HiddenServicePort {{port.port_from}} {{service.host}}:{{port.dest}}
 ORPort 9001
 {% endif %}
 
+{% if 'TOR_SOCKS_PORT' in env %}
+SocksPort {{env['TOR_SOCKS_PORT']}}
+{% else %}
 SocksPort 0
+{% endif %}
 
 # useless line for Jinja bug
