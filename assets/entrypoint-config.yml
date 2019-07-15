@@ -8,6 +8,7 @@ secret_env:
     - '*_PORTS'
     - '*_SERVICE_NAME'
     - '*_TOR_SERVICE_*'
+    - 'TOR_SOCKS_PORT'
 
 pre_conf_commands:
     - onions --setup-hosts
