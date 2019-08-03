@@ -1,3 +1,5 @@
 #!/bin/bash
+v1="${SOURCE_BRANCH%-*}"
+tor_version=${v1:1}
 
-docker build --build-arg tor_version=${SOURCE_BRANCH:1} -f $DOCKERFILE_PATH -t $IMAGE_NAME .
+docker build --build-arg tor_version=${tor_version} -f $DOCKERFILE_PATH -t $IMAGE_NAME .
