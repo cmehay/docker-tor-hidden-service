@@ -3,7 +3,7 @@
 # SEE README FOR INFORMATIONS
 
 tor:
-  image: goldy/tor-hidden-service:$TOR_VERSION
+  image: goldy/tor-hidden-service:$CUR_TAG
   links:
     - hello
     - world

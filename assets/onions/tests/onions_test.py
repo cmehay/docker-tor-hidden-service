@@ -208,6 +208,30 @@ def test_key(monkeypatch):
     assert onion.services[0].onion_url == onion_url
 
 
+def test_key_v2(monkeypatch):
+    key, onion_url = get_key_and_onion(version=2)
+    envs = [{
+        'GROUP1_TOR_SERVICE_HOSTS': '80:service1:80,81:service2:80',
+        'GROUP1_TOR_SERVICE_VERSION': '2',
+        'GROUP1_TOR_SERVICE_KEY': key,
+    }, {
+        'GROUP1_TOR_SERVICE_HOSTS': '80:service1:80,81:service2:80',
+        'GROUP1_TOR_SERVICE_KEY': key,
+    }]
+
+    for env in envs:
+        monkeypatch.setattr(os, 'environ', env)
+
+        onion = Onions()
+        onion._get_setup_from_env()
+        onion._load_keys_in_services()
+
+        assert len(os.environ) == len(env)
+        assert len(onion.services) == 1
+
+        assert onion.services[0].onion_url == onion_url
+
+
 def test_key_v3(monkeypatch):
     key, onion_url = get_key_and_onion(version=3)
     env = {
