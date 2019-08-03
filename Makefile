@@ -1,12 +1,14 @@
 .EXPORT_ALL_VARIABLES:
 
 TOR_VERSION = $(shell bash last_tor_version.sh)
+CUR_COMMIT = $(shell git rev-parse --short HEAD)
+CUR_TAG = v$(TOR_VERSION)-$(CUR_COMMIT)
 
 test:
 	tox
 
 tag:
-	git tag v$(TOR_VERSION) -f
+	git tag $(CUR_TAG)
 
 release: test tag
 	git push origin --tags
@@ -19,6 +21,7 @@ build:
 	docker-compose -f docker-compose.build.yml build
 
 rebuild:
+	- echo rebuild with tor version $(TOR_VERSION)
 	docker-compose -f docker-compose.build.yml build --no-cache
 
 run: build
@@ -31,3 +34,6 @@ run-v2-socket: build
 
 run-v3: build
 	docker-compose -f docker-compose.v3.yml up --force-recreate
+
+run-v3-latest:
+	docker-compose -f docker-compose.v3.latest.yml up --force-recreate

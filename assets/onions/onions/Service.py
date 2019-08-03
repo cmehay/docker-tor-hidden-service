@@ -8,6 +8,7 @@ import re
 
 from pytor import OnionV2
 from pytor import OnionV3
+from pytor.onion import EmptyDirException
 
 
 class ServicesGroup(object):
@@ -16,7 +17,6 @@ class ServicesGroup(object):
     version = None
     imported_key = False
     _default_version = 2
-    _imported_key = False
     _onion = None
     _hidden_service_dir = "/var/lib/tor/hidden_service/"
 
@@ -75,7 +75,7 @@ class ServicesGroup(object):
                 return service
 
     def add_key(self, key):
-        if self._imported_key:
+        if self.imported_key:
             logging.warning('Secret key already set, overriding')
         # Try to decode key from base64 encoding
         # import the raw data if the input cannot be decoded as base64
@@ -84,7 +84,7 @@ class ServicesGroup(object):
         except binascii.Error:
             pass
         self._onion.set_private_key(key)
-        self._imported_key = True
+        self.imported_key = True
 
     def __iter__(self):
         yield 'name', self.name
@@ -120,7 +120,7 @@ class ServicesGroup(object):
             self._onion.set_private_key_from_file(f)
 
     def load_key(self, override=False):
-        if self._imported_key and not override:
+        if self.imported_key and not override:
             return
         self.load_key_from_secrets()
         self.load_key_from_conf()
@@ -132,7 +132,7 @@ class ServicesGroup(object):
             return
         try:
             self._load_key(secret_file)
-            self._imported_key = True
+            self.imported_key = True
         except BaseException as e:
             logging.exception(e)
             logging.warning('Fail to load key from secret, '
@@ -144,7 +144,11 @@ class ServicesGroup(object):
             hidden_service_dir = self.hidden_service_dir
         if not os.path.isdir(hidden_service_dir):
             return
-        self._onion.load_hidden_service(hidden_service_dir)
+        try:
+            self._onion.load_hidden_service(hidden_service_dir)
+            self.imported_key = True
+        except EmptyDirException:
+            pass
 
     def gen_key(self):
         self.imported_key = False
