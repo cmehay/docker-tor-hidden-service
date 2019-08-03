@@ -22,7 +22,7 @@ services:
         # Set mapping ports
         HELLO_TOR_SERVICE_HOSTS: 80:hello:80,800:hello:80,8888:hello:80
         # Set private key
-        HELLO_TOR_SERVIVE_KEY: |
+        HELLO_TOR_SERVICE_KEY: |
             -----BEGIN RSA PRIVATE KEY-----
             MIICXQIBAAKBgQDR8TdQF9fDlGhy1SMgfhMBi9TaFeD12/FK27TZE/tYGhxXvs1C
             NmFJy1hjVxspF5unmUsCk0yEsvEdcAdp17Vynz6W41VdinETU9yXHlUJ6NyI32AH
