@@ -83,6 +83,8 @@ class ServicesGroup(object):
             key = base64.b64decode(key)
         except binascii.Error:
             pass
+        if isinstance(key, str):
+            key = key.encode('ascii')
         self._onion.set_private_key(key)
         self.imported_key = True
 
