@@ -115,6 +115,11 @@ Tor v3 addresses uses ed25519 binary keys. It should be base64 encoded:
 ```
 PT0gZWQyNTUxOXYxLXNlY3JldDogdHlwZTAgPT0AAACArobDQYyZAWXei4QZwr++j96H1X/gq14NwLRZ2O5DXuL0EzYKkdhZSILY85q+kfwZH8z4ceqe7u1F+0pQi/sM
 ```
+##### `TOR_SOCKS_PORT`
+
+Set tor sock5 proxy port for this tor instance. (Use this if you need to connect to tor network with your service)
+
+
 #### Secrets
 
 Secret key can be set through docker `secrets`, see `docker-compose.v3.yml` for example.
