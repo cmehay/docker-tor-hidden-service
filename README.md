@@ -119,6 +119,12 @@ PT0gZWQyNTUxOXYxLXNlY3JldDogdHlwZTAgPT0AAACArobDQYyZAWXei4QZwr++j96H1X/gq14NwLRZ
 
 Set tor sock5 proxy port for this tor instance. (Use this if you need to connect to tor network with your service)
 
+##### `TOR_CONTROL_PORT`, `TOR_CONTROL_AUTH_PASSWORD, `TOR_CONTROL_AUTH_COOKIE`
+
+Enable tor control port and auth (see doc https://2019.www.torproject.org/docs/tor-manual.html.en)
+
+Keys are stored in `/var/lib/tor/hidden_service/`
+
 
 #### Secrets
 

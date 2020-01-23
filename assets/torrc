@@ -25,4 +25,16 @@ SocksPort {{env['TOR_SOCKS_PORT']}}
 SocksPort 0
 {% endif %}
 
+DataDirectory /var/lib/tor/hidden_service
+
+{% if 'TOR_CONTROL_PORT' in env %}
+ControlPort {{env['TOR_CONTROL_PORT']}}
+{% if 'TOR_CONTROL_AUTH_PASSWORD' in env %}
+HashedControlPassword {{env['TOR_CONTROL_AUTH_PASSWORD']}}
+{% endif %}
+{% if 'TOR_CONTROL_AUTH_COOKIE' in env %}
+CookieAuthentication 1
+{% endif %}
+{% endif %}
+
 # useless line for Jinja bug

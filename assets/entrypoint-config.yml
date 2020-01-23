@@ -9,6 +9,9 @@ secret_env:
     - '*_SERVICE_NAME'
     - '*_TOR_SERVICE_*'
     - 'TOR_SOCKS_PORT'
+    - 'TOR_CONTROL_PORT'
+    - 'TOR_CONTROL_AUTH_PASSWORD'
+    - 'TOR_CONTROL_AUTH_COOKIE'
 
 pre_conf_commands:
     - onions --setup-hosts
