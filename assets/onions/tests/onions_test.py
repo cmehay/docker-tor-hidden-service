@@ -79,7 +79,15 @@ HiddenServicePort {{port.port_from}} {{service.host}}:{{port.dest}}
 ORPort 9001
 {% endif %}
 
+{% if 'TOR_SOCKS_PORT' in env %}
+SocksPort {{env['TOR_SOCKS_PORT']}}
+{% else %}
 SocksPort 0
+{% endif %}
+
+{% if 'TOR_EXTRA_OPTIONS' in env %}
+{{env['TOR_EXTRA_OPTIONS']}}
+{% endif %}
 
 # useless line for Jinja bug
     '''.strip()
@@ -282,6 +290,10 @@ def test_key_in_secret(fs, monkeypatch):
 
 
 def test_configuration(fs, monkeypatch, tmpdir):
+    extra_options = '''
+HiddenServiceNonAnonymousMode 1
+HiddenServiceSingleHopMode 1
+    '''.strip()
 
     env = {
         'SERVICE1_SERVICE_NAME': 'group1',
@@ -296,7 +308,8 @@ def test_configuration(fs, monkeypatch, tmpdir):
         'GROUP4_TOR_SERVICE_HOSTS': '81:unix://unix2.sock',
         'GROUP3V3_TOR_SERVICE_VERSION': '3',
         'GROUP3V3_TOR_SERVICE_HOSTS': '80:service4:888,81:service5:8080',
-        'SERVICE5_TOR_SERVICE_HOSTS': '80:service5:80'
+        'SERVICE5_TOR_SERVICE_HOSTS': '80:service5:80',
+        'TOR_EXTRA_OPTIONS': extra_options,
     }
 
     hidden_dir = '/var/lib/tor/hidden_service'
@@ -339,6 +352,8 @@ def test_configuration(fs, monkeypatch, tmpdir):
     assert torrc.count('HiddenServicePort 80 service5:80') == 1
     assert torrc.count('HiddenServicePort 81 unix://unix2.sock') == 1
     assert torrc.count('HiddenServiceVersion 3') == 2
+    assert 'HiddenServiceNonAnonymousMode 1\n' in torrc
+    assert 'HiddenServiceSingleHopMode 1\n' in torrc
 
     # Check parser
     onion2 = Onions()

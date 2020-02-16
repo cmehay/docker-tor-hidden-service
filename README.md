@@ -20,9 +20,9 @@ services:
       - again
     environment:
         # Set mapping ports
-        HELLO_TOR_SERVICE_HOSTS: 80:hello:80,800:hello:80,8888:hello:80
+        SERVICE1_TOR_SERVICE_HOSTS: 80:hello:80,800:hello:80,8888:hello:80
         # Set private key
-        HELLO_TOR_SERVICE_KEY: |
+        SERVICE1_TOR_SERVICE_KEY: |
             -----BEGIN RSA PRIVATE KEY-----
             MIICXQIBAAKBgQDR8TdQF9fDlGhy1SMgfhMBi9TaFeD12/FK27TZE/tYGhxXvs1C
             NmFJy1hjVxspF5unmUsCk0yEsvEdcAdp17Vynz6W41VdinETU9yXHlUJ6NyI32AH
@@ -40,10 +40,10 @@ services:
             -----END RSA PRIVATE KEY-----
 
         # hello and again will share the same onion v3 address
-        FOO_TOR_SERVICE_HOSTS: 88:again:80,8000:world:80
-        FOO_TOR_SERVICE_VERSION: '3'
+        SERVICE2_TOR_SERVICE_HOSTS: 88:again:80,8000:world:80
+        SERVICE2_TOR_SERVICE_VERSION: '3'
         # tor v3 address private key base 64 encoded
-        FOO_TOR_SERVICE_KEY: |
+        SERVICE2_TOR_SERVICE_KEY: |
             PT0gZWQyNTUxOXYxLXNlY3JldDogdHlwZTAgPT0AAACArobDQYyZAWXei4QZwr++
             j96H1X/gq14NwLRZ2O5DXuL0EzYKkdhZSILY85q+kfwZH8z4ceqe7u1F+0pQi/sM
 
@@ -63,9 +63,16 @@ services:
 This configuration will output:
 
 ```
-foo: xwjtp3mj427zdp4tljiiivg2l5ijfvmt5lcsfaygtpp6cw254kykvpyd.onion:88, xwjtp3mj427zdp4tljiiivg2l5ijfvmt5lcsfaygtpp6cw254kykvpyd.onion:8000
-hello: 5azvyr7dvvr4cldn.onion:80, 5azvyr7dvvr4cldn.onion:800, 5azvyr7dvvr4cldn.onion:8888
+service2: xwjtp3mj427zdp4tljiiivg2l5ijfvmt5lcsfaygtpp6cw254kykvpyd.onion:88, xwjtp3mj427zdp4tljiiivg2l5ijfvmt5lcsfaygtpp6cw254kykvpyd.onion:8000
+service1: 5azvyr7dvvr4cldn.onion:80, 5azvyr7dvvr4cldn.onion:800, 5azvyr7dvvr4cldn.onion:8888
 ```
+
+`xwjtp3mj427zdp4tljiiivg2l5ijfvmt5lcsfaygtpp6cw254kykvpyd.onion:88` will hit `again:80`.
+`xwjtp3mj427zdp4tljiiivg2l5ijfvmt5lcsfaygtpp6cw254kykvpyd.onion:8000` will hit `wold:80`.
+
+`5azvyr7dvvr4cldn.onion:80` will hit `hello:80`.
+`5azvyr7dvvr4cldn.onion:800` will hit `hello:80` too.
+`5azvyr7dvvr4cldn.onion:8888` will hit `hello:80` again.
 
 #### Environment variables
 
@@ -118,6 +125,20 @@ PT0gZWQyNTUxOXYxLXNlY3JldDogdHlwZTAgPT0AAACArobDQYyZAWXei4QZwr++j96H1X/gq14NwLRZ
 ##### `TOR_SOCKS_PORT`
 
 Set tor sock5 proxy port for this tor instance. (Use this if you need to connect to tor network with your service)
+
+##### `TOR_EXTRA_OPTIONS`
+
+Add any options in the `torrc` file.
+
+```yaml
+services:
+  tor:
+    environment:
+        # Add any option you need
+        TOR_EXTRA_OPTIONS: |
+          HiddenServiceNonAnonymousMode 1
+          HiddenServiceSingleHopMode 1
+```
 
 
 #### Secrets
