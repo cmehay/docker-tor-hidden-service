@@ -25,4 +25,8 @@ SocksPort {{env['TOR_SOCKS_PORT']}}
 SocksPort 0
 {% endif %}
 
+{% if 'TOR_EXTRA_OPTIONS' in env %}
+{{env['TOR_EXTRA_OPTIONS']}}
+{% endif %}
+
 # useless line for Jinja bug
