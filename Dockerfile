@@ -28,8 +28,9 @@ RUN     mkdir -p /etc/tor/
 ADD     assets/entrypoint-config.yml /
 ADD     assets/onions /usr/local/src/onions
 ADD     assets/torrc /var/local/tor/torrc.tpl
+ADD     assets/v3onions /usr/bin/v3onions
 
-
+RUN     chmod +x /usr/bin/v3onions
 RUN     cd /usr/local/src/onions && python3 setup.py install
 
 RUN     mkdir -p ${HOME}/.tor && \

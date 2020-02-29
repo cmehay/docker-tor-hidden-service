@@ -1,0 +1,8 @@
+#!/bin/sh
+
+#Define Variables
+PORT=`onions | awk -F: '{ print $NF }'`
+ONION=`ls -l /var/lib/tor/hidden_service/*/hostname | cut -c58- && cat /var/lib/tor/hidden_service/*/hostname` 
+
+#Displace v3address:port
+echo $ONION:$PORT
