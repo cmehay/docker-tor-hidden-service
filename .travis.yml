@@ -4,7 +4,7 @@ language: python
 python:
 - '3.6'
 - '3.7'
-install: pip install tox-travis pre-commit
+install: pip install tox-travis pre-commit poetry
 script:
 - pre-commit run --all-files
 - tox

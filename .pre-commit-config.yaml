@@ -14,11 +14,11 @@ repos:
     -   id: requirements-txt-fixer
     -   id: trailing-whitespace
 -   repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: v1.5
+    rev: v1.5.2
     hooks:
     -   id: autopep8
 -   repo: git://github.com/asottile/reorder_python_imports
-    rev: v1.9.0
+    rev: v2.3.0
     hooks:
     -   id: reorder-python-imports
         language_version: python3
