@@ -7,6 +7,7 @@ from hashlib import sha1
 
 import pytest
 from Crypto.PublicKey import RSA
+
 from onions import Onions
 
 
