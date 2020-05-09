@@ -25,7 +25,7 @@ rebuild:
 	docker-compose -f docker-compose.build.yml build --no-cache
 
 run: build
-	docker-compose -f docker-compose-v1.yml up --force-recreate
+	docker-compose -f docker-compose.v1.yml up --force-recreate
 run-v2: build
 	docker-compose -f docker-compose.v2.yml up --force-recreate
 
@@ -34,6 +34,9 @@ run-v2-socket: build
 
 run-v3: build
 	docker-compose -f docker-compose.v3.yml up --force-recreate
+
+shell-v3: build
+	docker-compose -f docker-compose.v3.yml run tor--rm tor sh
 
 run-v3-latest:
 	docker-compose -f docker-compose.v3.latest.yml up --force-recreate

@@ -23,19 +23,24 @@ RUN     apk add --no-cache git libevent-dev openssl-dev gcc make automake ca-cer
 
 RUN     mkdir -p /etc/tor/
 
-COPY    onions /usr/local/src/onions/onions
-COPY    poetry.lock pyproject.toml /usr/local/src/onions/
-COPY    assets/torrc /var/local/tor/torrc.tpl
+COPY    pyproject.toml /usr/local/src/onions/
 
 RUN     cd /usr/local/src/onions && apk add --no-cache openssl-dev libffi-dev gcc libc-dev && \
-    poetry install --no-dev && \
+    poetry install --no-dev --no-root && \
     apk del libffi-dev gcc libc-dev openssl-dev
+
+COPY    onions /usr/local/src/onions/onions
+COPY    poetry.lock /usr/local/src/onions/
+RUN     cd /usr/local/src/onions && poetry install --no-dev
 
 RUN     mkdir -p ${HOME}/.tor && \
     addgroup -S -g 107 tor && \
     adduser -S -G tor -u 104 -H -h ${HOME} tor
 
 COPY    assets/entrypoint-config.yml /
+COPY    assets/torrc /var/local/tor/torrc.tpl
+
+
 
 VOLUME  ["/var/lib/tor/hidden_service/"]
 
