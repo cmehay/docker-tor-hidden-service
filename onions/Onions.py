@@ -116,7 +116,11 @@ class Setup(object):
         for key, val in os.environ.items():
             m = match(reg, key)
             if m:
-                self.add_new_service(host=m.groups()[0].lower(), name=val)
+                try:
+                    self.add_new_service(host=m.groups()[0].lower(), name=val)
+                except BaseException as e:
+                    logging.error(f"Fail to setup from {key} environment")
+                    logging.error(e)
 
     def _set_ports(self, host, ports):
         self.add_new_service(host=host, ports=ports)
@@ -129,7 +133,11 @@ class Setup(object):
             for key, val in os.environ.items():
                 m = match(reg, key)
                 if m:
-                    call(m.groups()[0].lower(), val)
+                    try:
+                        call(m.groups()[0].lower(), val)
+                    except BaseException as e:
+                        logging.error(f"Fail to setup from {key} environment")
+                        logging.error(e)
 
     def _setup_keys_and_ports_from_env(self):
         self._setup_from_env(
@@ -228,29 +236,33 @@ class Setup(object):
         self.apply_conf()
 
     def check_services(self):
+        to_remove = set()
         for group in self.services:
-            for service in group.services:
-                if not service.ports:
-                    raise Exception(
-                        'Service {name} has not ports set'.format(
-                            name=service.host
+            try:
+                for service in group.services:
+                    if not service.ports:
+                        raise Exception(
+                            'Service {name} has not ports set'.format(
+                                name=service.host
+                            )
                         )
-                    )
-                if len(group.services) > 1 and [
-                    True for p in service.ports if p.is_socket
-                ]:
-                    raise Exception(
-                        'Cannot use socket and ports '
-                        'in the same service'.format(
-                            name=service.host
+                    if len(group.services) > 1 and [
+                        True for p in service.ports if p.is_socket
+                    ]:
+                        raise Exception(
+                            f'Cannot use socket and ports '
+                            f'in the same {service.host}'
                         )
+                if len(set(dict(group)['urls'])) != len(dict(group)['urls']):
+                    raise Exception(
+                        f'Same port for multiple services in '
+                        f'{group.name} group'
                     )
-            if len(set(dict(group)['urls'])) != len(dict(group)['urls']):
-                raise Exception(
-                    'Same port for multiple services in {name} group'.format(
-                        name=group.name
-                    )
-                )
+            except Exception as e:
+                logging.error(e)
+                to_remove.add(group)
+        for group in to_remove:
+            self.services.remove(group)
 
 
 class Onions(Setup):
