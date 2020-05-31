@@ -2,14 +2,18 @@
 import argparse
 import logging
 import os
+import socket
+import subprocess
 import sys
 from base64 import b64decode
 from json import dumps
 from re import match
 
+from IPy import IP
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from pyentrypoint import DockerLinks
+from pyentrypoint.config import envtobool
 
 from .Service import Service
 from .Service import ServicesGroup
@@ -18,8 +22,17 @@ from .Service import ServicesGroup
 class Setup(object):
 
     hidden_service_dir = "/var/lib/tor/hidden_service/"
+    data_directory = "/run/tor/data"
     torrc = '/etc/tor/torrc'
     torrc_template = '/var/local/tor/torrc.tpl'
+    enable_control_port = False
+    control_port = 9051
+    control_ip_binding = IP('0.0.0.0')
+    control_hashed_password = None
+    control_socket = 'unix:/run/tor/tor_control.sock'
+    enable_vanguards = False
+    vanguards_template = '/var/local/tor/vanguards.conf.tpl'
+    vanguards_conf = '/etc/tor/vanguards.conf'
 
     def _add_host(self, host):
         if host not in self.setup:
@@ -41,6 +54,58 @@ class Setup(object):
             assert len(port) == 2
             if port not in self.setup[host]['ports'][host]:
                 self.setup[host]['ports'][host].append(port)
+
+    def _hash_control_port_password(self, password):
+        self.control_hashed_password = subprocess.check_output([
+            'tor', '--quiet', '--hash-password', password
+        ]).decode()
+
+    def _parse_control_port_variable(self, check_ip=True):
+        control_port = os.environ['TOR_CONTROL_PORT']
+        try:
+            if control_port.startswith('unix:'):
+                _, self.control_socket = control_port.split(':')
+                return
+            self.control_socket = None
+            if ':' in control_port:
+                host, port = control_port.split(':')
+                self.control_ip_binding = IP(host) if check_ip else host
+                self.control_port = int(port)
+                return
+            self.control_ip_binding = (
+                IP(control_port) if check_ip else control_port
+            )
+        except BaseException as e:
+            logging.error('TOR_CONTROL_PORT environment variable error')
+            logging.exception(e)
+
+    def _setup_control_port(self):
+        if 'TOR_CONTROL_PORT' not in os.environ:
+            return
+        self.enable_control_port = True
+        self._parse_control_port_variable()
+
+        if os.environ.get('TOR_CONTROL_PASSWORD'):
+            self._hash_control_port_password(os.environ[
+                'TOR_CONTROL_PASSWORD'
+            ])
+        if envtobool('TOR_DATA_DIRECTORY', False):
+            self.data_directory = os.environ['TOR_DATA_DIRECTORY']
+
+    def _setup_vanguards(self):
+        if not envtobool('TOR_ENABLE_VANGUARDS', False):
+            return
+        self.enable_control_port = True
+        self.enable_vanguards = True
+        os.environ['TOR_CONTROL_PORT'] = self.control_socket
+        self.kill_tor_on_vanguard_exit = envtobool(
+            'VANGUARD_KILL_TOR_ON_EXIT',
+            True
+        )
+        self.vanguards_state_file = os.path.join(
+            self.data_directory,
+            'vanguards.state'
+        )
 
     def _get_key(self, host, key):
         self._add_host(host)
@@ -213,6 +278,8 @@ class Setup(object):
     def apply_conf(self):
         self._write_keys()
         self._write_torrc()
+        if self.enable_vanguards:
+            self._write_vanguards_conf()
 
     def _write_keys(self):
         for service in self.services:
@@ -222,10 +289,56 @@ class Setup(object):
         env = Environment(loader=FileSystemLoader('/'))
         temp = env.get_template(self.torrc_template)
         with open(self.torrc, mode='w') as f:
-            f.write(temp.render(services=self.services,
+            f.write(temp.render(onion=self,
                                 env=os.environ,
+                                envtobool=envtobool,
                                 type=type,
                                 int=int))
+
+    def _write_vanguards_conf(self):
+        env = Environment(loader=FileSystemLoader('/'))
+        temp = env.get_template(self.vanguards_template)
+        with open(self.vanguards_conf, mode='w') as f:
+            f.write(temp.render(env=os.environ,
+                                envtobool=envtobool))
+
+    def run_vanguards(self):
+        self._setup_vanguards()
+        if not self.enable_vanguards:
+            return
+        logging.info('Vanguard enabled, starting...')
+        if not self.kill_tor_on_vanguard_exit:
+            os.execvp('vanguards', ['vanguards'])
+        try:
+            subprocess.check_call('vanguards')
+        except subprocess.CalledProcessError as e:
+            logging.error(str(e))
+        finally:
+            logging.error('Vanguards has exited, killing tor...')
+            os.kill(1, 2)
+
+    def resolve_control_hostname(self):
+        try:
+            addr = socket.getaddrinfo(self.control_ip_binding,
+                                      None,
+                                      socket.AF_INET,
+                                      socket.SOCK_STREAM,
+                                      socket.IPPROTO_TCP)
+        except socket.gaierror:
+            raise
+        return IP(addr[0][4][0])
+
+    def resolve_control_port(self):
+        if 'TOR_CONTROL_PORT' not in os.environ:
+            return
+        self._parse_control_port_variable(check_ip=False)
+        if self.control_socket:
+            print(os.environ['TOR_CONTROL_PORT'])
+        try:
+            ip = IP(self.control_ip_binding)
+        except ValueError:
+            ip = self.resolve_control_hostname()
+        print(f"{ip}:{self.control_port}")
 
     def setup_hosts(self):
         self.setup = {}
@@ -233,6 +346,8 @@ class Setup(object):
         self._get_setup_from_links()
         self._load_keys_in_services()
         self.check_services()
+        self._setup_vanguards()
+        self._setup_control_port()
         self.apply_conf()
 
     def check_services(self):
@@ -272,6 +387,8 @@ class Onions(Setup):
         self.services = []
         if 'HIDDEN_SERVICE_DIR' in os.environ:
             self.hidden_service_dir = os.environ['HIDDEN_SERVICE_DIR']
+        if os.environ.get('TOR_DATA_DIRECTORY'):
+            self.data_directory = os.environ['TOR_DATA_DIRECTORY']
 
     def torrc_parser(self):
 
@@ -357,6 +474,13 @@ def main():
     parser.add_argument('--setup-hosts', dest='setup', action='store_true',
                         help='Setup hosts')
 
+    parser.add_argument('--run-vanguards', dest='vanguards',
+                        action='store_true',
+                        help='Run Vanguards in tor container')
+    parser.add_argument('--resolve-control-port', dest='resolve_control_port',
+                        action='store_true',
+                        help='Resolve ip from host if needed')
+
     args = parser.parse_args()
     logging.getLogger().setLevel(logging.WARNING)
     try:
@@ -365,6 +489,12 @@ def main():
             onions.setup_hosts()
         else:
             onions.torrc_parser()
+        if args.vanguards:
+            onions.run_vanguards()
+            return
+        if args.resolve_control_port:
+            onions.resolve_control_port()
+            return
     except BaseException as e:
         logging.exception(e)
         error_msg = str(e)

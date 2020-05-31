@@ -4,11 +4,13 @@ ARG     tor_version
 ENV     HOME /var/lib/tor
 ENV     POETRY_VIRTUALENVS_CREATE=false
 
-RUN     apk add --no-cache git libevent-dev openssl-dev gcc make automake ca-certificates autoconf musl-dev coreutils libffi-dev zlib-dev && \
-    mkdir -p /usr/local/src/ && \
+RUN     apk add --no-cache git bind-tools libevent-dev openssl-dev gnupg gcc make automake ca-certificates autoconf musl-dev coreutils libffi-dev zlib-dev && \
+    mkdir -p /usr/local/src/ /var/lib/tor/ && \
+    gpg --batch --auto-key-locate nodefault,wkd --recv-keys FE43009C4607B1FB && \
     git clone https://git.torproject.org/tor.git /usr/local/src/tor && \
     cd /usr/local/src/tor && \
     git checkout tor-$tor_version && \
+    git verify-tag tor-$tor_version && \
     ./autogen.sh && \
     ./configure \
     --disable-asciidoc \
@@ -18,7 +20,7 @@ RUN     apk add --no-cache git libevent-dev openssl-dev gcc make automake ca-cer
     cd .. && \
     rm -rf tor && \
     pip3 install --upgrade pip poetry && \
-    apk del git libevent-dev openssl-dev make automake autoconf musl-dev coreutils libffi-dev && \
+    apk del git libevent-dev openssl-dev gnupg make automake autoconf musl-dev coreutils libffi-dev && \
     apk add --no-cache libevent openssl
 
 RUN     mkdir -p /etc/tor/
@@ -39,8 +41,11 @@ RUN     mkdir -p ${HOME}/.tor && \
 
 COPY    assets/entrypoint-config.yml /
 COPY    assets/torrc /var/local/tor/torrc.tpl
+COPY    assets/vanguards.conf.tpl /var/local/tor/vanguards.conf.tpl
 
+ENV     VANGUARDS_CONFIG /etc/tor/vanguards.conf
 
+RUN apk add socat
 
 VOLUME  ["/var/lib/tor/hidden_service/"]
 

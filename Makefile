@@ -40,3 +40,9 @@ shell-v3: build
 
 run-v3-latest:
 	docker-compose -f docker-compose.v3.latest.yml up --force-recreate
+
+run-vanguards: build
+	docker-compose -f docker-compose.vanguards.yml up --force-recreate
+
+run-vanguards-network: build
+	docker-compose -f docker-compose.vanguards-network.yml up --force-recreate

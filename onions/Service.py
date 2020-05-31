@@ -54,7 +54,7 @@ class ServicesGroup(object):
         version = int(version)
         if version not in self.onion_map:
             raise Exception(
-                'Url version {version} is not supported'.format(version)
+                f'Url version {version} is not supported'
             )
         self.version = version
         self._onion = self.onion_map[version]()
