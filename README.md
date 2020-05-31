@@ -181,6 +181,37 @@ If you need to use the legacy version, please checkout the `legacy` branch or pu
 
 This containner uses [`pytor`](https://github.com/cmehay/pytor) to mannages tor cryptography, generate keys and compute onion urls.
 
+## Control port
+
+Use these environment variables to enable control port
+* `TOR_CONTROL_PORT`: enable and set control port binding (`ip`, `ip:port` or `unix:/path/to/socket.sock`) (default port is 9051)
+* `TOR_CONTROL_PASSWORD`: set control port password (in clear, not hashed)
+* `TOR_DATA_DIRECTORY`: set data directory (default `/run/tor/data`)
+
+## Vanguards
+
+For critical hidden services, it's possible to increase security with [`Vanguards`](https://github.com/mikeperry-tor/vanguards) tool.
+
+#### Settings
+
+It's not possible yet to custom all the settings using environment variable, but it's possible to mount configuration file to `/etc/tor/vanguards.conf` to custom `vanguards` settings.
+
+### Run in the same container
+
+Check out [`docker-compose.vanguards.yml`](docker-compose.vanguads.yml) for example.
+
+Add environment variable `TOR_ENABLE_VANGUARDS` to `true` to start `vanguards` daemon beside `tor` process. `Vanguards` logs will be displayed to stdout using `pyentrypoint` logging, if you need raw output, set `ENTRYPOINT_RAW` to `true` in environment.
+
+In this mode, if `vanguards` exits, sigint is sent to `tor` process to terminate it. If you want to disable this behavior, set `VANGUARD_KILL_TOR_ON_EXIT` to `false` in environment.
+
+### Run in separate containers
+Check out[`docker-compose.vanguards-network.yml`](docker-compose.vanguards-network.yml) for an example of increased security setup using docker networks.
+
+#### settings
+
+Use the same environment variable as `tor` to configure `vangards` (see upper).
+* `TOR_CONTROL_PORT`
+* `TOR_CONTROL_PASSWORD`
 
 # Legacy deprecated doc
 

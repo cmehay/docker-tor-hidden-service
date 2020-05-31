@@ -1,29 +1,49 @@
-{% for service_group in services %}
+{% for service_group in onion.services %}
 HiddenServiceDir {{service_group.hidden_service_dir}}
-{% if service_group.version == 3 %}
+    {% if service_group.version == 3 %}
 HiddenServiceVersion 3
-{% endif %}
-{% for service in service_group.services %}
-{% for port in service.ports %}
-{% if port.is_socket %}
+    {% endif %}
+    {% for service in service_group.services %}
+        {% for port in service.ports %}
+            {% if port.is_socket %}
 HiddenServicePort {{port.port_from}} {{port.dest}}
-{% endif %}
-{% if not port.is_socket %}
+            {% endif %}
+            {% if not port.is_socket %}
 HiddenServicePort {{port.port_from}} {{service.host}}:{{port.dest}}
-{% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
 {% endfor %}
-{% endfor %}
-{% endfor %}
-
-{% if 'RELAY' in env %}
-ORPort 9001
-{% endif %}
-
+DataDirectory {{ onion.data_directory }}
 {% if 'TOR_SOCKS_PORT' in env %}
 SocksPort {{env['TOR_SOCKS_PORT']}}
 {% else %}
 SocksPort 0
 {% endif %}
+
+{% if envtobool('TOR_EXIT_RELAY', False) %}
+ExitRelay 1
+{% else %}
+ExitRelay 0
+{% endif %}
+
+{% if onion.enable_control_port %}
+    {% if onion.control_socket %}
+ControlPort unix:{{onion.control_socket}}
+    {% endif %}
+    {% if not onion.control_socket %}
+        {% if onion.control_ip_binding.version() == 4 %}
+ControlPort {{onion.control_ip_binding}}:{{ onion.control_port }}
+        {% endif %}
+        {% if onion.control_ip_binding.version() == 6 %}
+ControlPort [{{onion.control_ip_binding}}]:{{ onion.control_port }}
+        {% endif %}
+    {% endif %}
+    {% if onion.control_hashed_password %}
+HashedControlPassword {{ onion.control_hashed_password }}
+    {% endif %}
+{% endif %}
+
 
 {% if 'TOR_EXTRA_OPTIONS' in env %}
 {{env['TOR_EXTRA_OPTIONS']}}

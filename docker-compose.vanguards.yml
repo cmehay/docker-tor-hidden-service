@@ -1,0 +1,36 @@
+# Secure vangard in the same container
+
+version: "3.1"
+
+services:
+  tor:
+    image: goldy/tor-hidden-service:$CUR_TAG
+    environment:
+        TOR_ENABLE_VANGUARDS: 'true'
+        HELLO_TOR_SERVICE_HOSTS: '80:hello:80'
+        HELLO_TOR_SERVICE_VERSION: '3'
+
+
+    # Keep keys in volumes
+    volumes:
+      - tor-keys:/var/lib/tor/hidden_service/
+
+    # Set secret for key, use the same name as the service
+    secrets:
+      - source: hello
+        target: hello
+        mode: 0400
+
+  hello:
+    image: tutum/hello-world
+    hostname: hello
+    depends_on:
+      - tor
+
+volumes:
+    tor-keys:
+        driver: local
+
+secrets:
+    hello:
+        file: ./private_key_bar_v3
