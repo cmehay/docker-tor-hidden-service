@@ -14,6 +14,7 @@ from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from pyentrypoint import DockerLinks
 from pyentrypoint.config import envtobool
+from pyentrypoint.configparser import ConfigParser
 
 from .Service import Service
 from .Service import ServicesGroup
@@ -64,7 +65,7 @@ class Setup(object):
         control_port = os.environ['TOR_CONTROL_PORT']
         try:
             if control_port.startswith('unix:'):
-                _, self.control_socket = control_port.split(':')
+                self.control_socket = control_port
                 return
             self.control_socket = None
             if ':' in control_port:
@@ -97,7 +98,7 @@ class Setup(object):
             return
         self.enable_control_port = True
         self.enable_vanguards = True
-        os.environ['TOR_CONTROL_PORT'] = self.control_socket
+        os.environ.setdefault('TOR_CONTROL_PORT', self.control_socket)
         self.kill_tor_on_vanguard_exit = envtobool(
             'VANGUARD_KILL_TOR_ON_EXIT',
             True
@@ -300,6 +301,7 @@ class Setup(object):
         temp = env.get_template(self.vanguards_template)
         with open(self.vanguards_conf, mode='w') as f:
             f.write(temp.render(env=os.environ,
+                                ConfigParser=ConfigParser,
                                 envtobool=envtobool))
 
     def run_vanguards(self):

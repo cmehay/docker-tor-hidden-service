@@ -29,7 +29,7 @@ ExitRelay 0
 
 {% if onion.enable_control_port %}
     {% if onion.control_socket %}
-ControlPort unix:{{onion.control_socket}}
+ControlPort {{onion.control_socket}}
     {% endif %}
     {% if not onion.control_socket %}
         {% if onion.control_ip_binding.version() == 4 %}

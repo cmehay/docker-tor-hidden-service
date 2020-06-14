@@ -192,9 +192,6 @@ Use these environment variables to enable control port
 
 For critical hidden services, it's possible to increase security with [`Vanguards`](https://github.com/mikeperry-tor/vanguards) tool.
 
-#### Settings
-
-It's not possible yet to custom all the settings using environment variable, but it's possible to mount configuration file to `/etc/tor/vanguards.conf` to custom `vanguards` settings.
 
 ### Run in the same container
 
@@ -212,6 +209,22 @@ Check out[`docker-compose.vanguards-network.yml`](docker-compose.vanguards-netwo
 Use the same environment variable as `tor` to configure `vangards` (see upper).
 * `TOR_CONTROL_PORT`
 * `TOR_CONTROL_PASSWORD`
+
+##### more settings
+
+Use `VANGUARDS_EXTRA_OPTIONS` environment variable to change any settings.
+
+The following settings cannot me changer with this variable:
+ - `control_ip`:
+   - use `TOR_CONTROL_PORT`
+ - `control_port`:
+   - use `TOR_CONTROL_PORT`
+ - `control_socket`:
+   - use `TOR_CONTROL_PORT`
+ - `control_pass`:
+   - use `TOR_CONTROL_PASSWORD`
+ - `state_file`:
+   - use `VANGUARDS_STATE_FILE`
 
 # Legacy deprecated doc
 
