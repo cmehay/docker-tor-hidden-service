@@ -12,6 +12,12 @@ services:
         # Set controle port password (optionnal)
         TOR_CONTROL_PASSWORD: something_secret
 
+        # You can change any options here, excepted control_* ones and state_file
+        VANGUARDS_EXTRA_OPTIONS: |
+          [Global]
+          enable_cbtverify = True
+          loglevel = DEBUG
+
         HELLO_TOR_SERVICE_HOSTS: '80:hello:80'
         HELLO_TOR_SERVICE_VERSION: '3'
 

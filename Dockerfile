@@ -45,8 +45,6 @@ COPY    assets/vanguards.conf.tpl /var/local/tor/vanguards.conf.tpl
 
 ENV     VANGUARDS_CONFIG /etc/tor/vanguards.conf
 
-RUN apk add socat
-
 VOLUME  ["/var/lib/tor/hidden_service/"]
 
 ENTRYPOINT ["pyentrypoint"]

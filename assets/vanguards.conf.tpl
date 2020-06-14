@@ -1,12 +1,7 @@
-## Example vanguards configuration file
-#
-# The values in this file are the defaults. You do not need to specify
-# options in your config file unless you wish to change the defaults.
-
 ## Global options
 [Global]
 
-{% if env.get('TOR_CONTROL_PORT', '').startswith('unix:') %}
+{% if (env.get('TOR_CONTROL_PORT', '')).startswith('unix:') %}
 {% set _, unix_path = env['TOR_CONTROL_PORT'].split(':', 1) %}
 {% elif ':' in env.get('TOR_CONTROL_PORT', '') %}
 {% set host, port = env['TOR_CONTROL_PORT'].split(':', 1) %}
@@ -14,18 +9,34 @@
 {% set host = env.get('TOR_CONTROL_PORT') %}
 {% endif %}
 
-# IP address that the Tor control port is listening on:
 control_ip = {{ host or '' }}
 
-# TCP port the control port is listening on:
 control_port = {{ port or 9051 }}
 
-# If set, use this filesystem control socket instead of IP+Port:
 control_socket = {{ unix_path or '' }}
 
-# If set, use this as the control port password:
 control_pass = {{ env.get('TOR_CONTROL_PASSWORD', '') }}
 
+state_file = {{ env.get('VANGUARDS_STATE_FILE', '/run/tor/data/vanguards.state') }}
+
+
+{% if 'VANGUARDS_EXTRA_OPTIONS' in env %}
+{% set extra_conf = ConfigParser().read_string(env['VANGUARDS_EXTRA_OPTIONS']) %}
+{% if 'Global' in extra_conf %}
+{% for key, val in extra_conf['Global'].items() %}
+{{key}} = {{val}}
+{% endfor %}
+{% set _ = extra_conf.pop('Global') %}
+{% endif %}
+{{ extra_conf.to_string() }}
+{% endif %}
+
+{#
+## Example vanguards configuration file
+#
+# All values below are default values and won't appear in final config file
+# Original here: https://github.com/mikeperry-tor/vanguards/blob/master/vanguards-example.conf
+#
 # Enable/disable active vanguard update of layer2 and layer3 guards
 enable_vanguards = True
 
@@ -33,7 +44,7 @@ enable_vanguards = True
 enable_bandguards = True
 
 # Enable/disable circuit build timeout analysis (informational only):
-enable_cbtverify = True
+enable_cbtverify = False
 
 # Enable/disable checks on Rendezvous Point overuse attacks:
 enable_rendguard = True
@@ -50,10 +61,6 @@ loglevel = NOTICE
 
 # If specified, log to this file instead of stdout:
 logfile =
-
-# Name of state file (with absolute path, or relative to current directory):
-state_file = {{ env.get('VANGUARDS_STATE_FILE', '/run/tor/data/vanguards.state') }}
-
 
 ## Vanguards: layer1, layer2, and layer3 rotation params.
 [Vanguards]
@@ -135,3 +142,4 @@ rend_use_relay_start_count = 100
 
 # Divide all relay counts by two once the total circuit count hits this many:
 rend_use_scale_at_count = 20000
+#}

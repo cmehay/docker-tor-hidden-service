@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "docker-tor-hidden-service"
-version = "0.6.0"
+version = "0.6.1"
 description = "Display onion sites hosted"
 authors = ["Christophe Mehay <cmehay@nospam.student.42.fr>"]
 license = "WTFPL"
@@ -26,7 +26,7 @@ onions = "onions:main"
 python = ">= 3.7, < 3.8"
 pytor = "^0.1.5"
 Jinja2 = "^2.10"
-pyentrypoint = "^0.7.3"
+pyentrypoint = "^0.7.4"
 importlib_metadata = "^1.6.0"
 vanguards = "^0.3.1"
 ipy = "^1.00"
