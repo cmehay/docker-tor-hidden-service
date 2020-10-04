@@ -6,11 +6,9 @@ ENV     POETRY_VIRTUALENVS_CREATE=false
 
 RUN     apk add --no-cache git bind-tools libevent-dev openssl-dev gnupg gcc make automake ca-certificates autoconf musl-dev coreutils libffi-dev zlib-dev && \
     mkdir -p /usr/local/src/ /var/lib/tor/ && \
-    gpg --batch --auto-key-locate nodefault,wkd --recv-keys FE43009C4607B1FB && \
     git clone https://git.torproject.org/tor.git /usr/local/src/tor && \
     cd /usr/local/src/tor && \
     git checkout tor-$tor_version && \
-    git verify-tag tor-$tor_version && \
     ./autogen.sh && \
     ./configure \
     --disable-asciidoc \
