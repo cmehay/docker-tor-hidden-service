@@ -9,3 +9,4 @@ services:
       context: .
       args:
         tor_version: $TOR_VERSION
+        torsocks_version: $TORSOCKS_VERSION

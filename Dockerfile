@@ -1,5 +1,6 @@
 FROM    python:3.8-alpine
 ARG     tor_version
+ARG     torsocks_version
 
 ENV     HOME /var/lib/tor
 ENV     POETRY_VIRTUALENVS_CREATE=false
@@ -20,6 +21,17 @@ RUN     apk add --no-cache git bind-tools libevent-dev openssl-dev gnupg gcc mak
     pip3 install --upgrade pip poetry && \
     apk del git libevent-dev openssl-dev gnupg make automake autoconf musl-dev coreutils libffi-dev && \
     apk add --no-cache libevent openssl
+
+RUN    apk add --no-cache git gcc make automake autoconf musl-dev libtool && \
+    git clone https://git.torproject.org/torsocks.git /usr/local/src/torsocks && \
+    cd /usr/local/src/torsocks && \
+    git checkout $torsocks_version && \
+    ./autogen.sh && \
+    ./configure && \
+    make && make install && \
+    cd .. && \
+    rm -rf torsocks && \
+    apk del git gcc make automake autoconf musl-dev libtool
 
 RUN     mkdir -p /etc/tor/
 
