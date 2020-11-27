@@ -1,6 +1,7 @@
 .EXPORT_ALL_VARIABLES:
 
 TOR_VERSION = $(shell bash last_tor_version.sh)
+TORSOCKS_VERSION = $(shell bash last_torsocks_version.sh)
 CUR_COMMIT = $(shell git rev-parse --short HEAD)
 CUR_TAG = v$(TOR_VERSION)-$(CUR_COMMIT)
 
@@ -17,11 +18,11 @@ check:
 	pre-commit run --all-files
 
 build:
-	- echo build with tor version $(TOR_VERSION)
+	- echo build with tor version $(TOR_VERSION) and torsocks version $(TORSOCKS_VERSION)
 	docker-compose -f docker-compose.build.yml build
 
 rebuild:
-	- echo rebuild with tor version $(TOR_VERSION)
+	- echo rebuild with tor version $(TOR_VERSION) and torsocks version $(TORSOCKS_VERSION)
 	docker-compose -f docker-compose.build.yml build --no-cache
 
 run: build
