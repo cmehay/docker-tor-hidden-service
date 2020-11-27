@@ -31,7 +31,9 @@ RUN     cd /usr/local/src/onions && apk add --no-cache openssl-dev libffi-dev gc
 
 COPY    onions /usr/local/src/onions/onions
 COPY    poetry.lock /usr/local/src/onions/
-RUN     cd /usr/local/src/onions && poetry install --no-dev
+RUN     cd /usr/local/src/onions && apk add --no-cache gcc libc-dev && \
+    poetry install --no-dev && \
+    apk del gcc libc-dev
 
 RUN     mkdir -p ${HOME}/.tor && \
     addgroup -S -g 107 tor && \
