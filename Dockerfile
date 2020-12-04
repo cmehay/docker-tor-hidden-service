@@ -1,4 +1,6 @@
 FROM    python:3.8-alpine
+
+# if omitted, the versions are determined from the git tags
 ARG     tor_version
 ARG     torsocks_version
 
@@ -9,7 +11,8 @@ RUN     apk add --no-cache git bind-tools libevent-dev openssl-dev gnupg gcc mak
     mkdir -p /usr/local/src/ /var/lib/tor/ && \
     git clone https://git.torproject.org/tor.git /usr/local/src/tor && \
     cd /usr/local/src/tor && \
-    git checkout tor-$tor_version && \
+    TOR_VERSION=${tor_version=$(git tag | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)} && \
+    git checkout tor-$TOR_VERSION && \
     ./autogen.sh && \
     ./configure \
     --disable-asciidoc \
@@ -25,7 +28,8 @@ RUN     apk add --no-cache git bind-tools libevent-dev openssl-dev gnupg gcc mak
 RUN    apk add --no-cache git gcc make automake autoconf musl-dev libtool && \
     git clone https://git.torproject.org/torsocks.git /usr/local/src/torsocks && \
     cd /usr/local/src/torsocks && \
-    git checkout $torsocks_version && \
+    TORSOCKS_VERSION=${torsocks_version=$(git tag | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)} && \
+    git checkout $TORSOCKS_VERSION && \
     ./autogen.sh && \
     ./configure && \
     make && make install && \
