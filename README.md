@@ -195,7 +195,7 @@ For critical hidden services, it's possible to increase security with [`Vanguard
 
 ### Run in the same container
 
-Check out [`docker-compose.vanguards.yml`](docker-compose.vanguads.yml) for example.
+Check out [`docker-compose.vanguards.yml`](docker-compose.vanguards.yml) for example.
 
 Add environment variable `TOR_ENABLE_VANGUARDS` to `true` to start `vanguards` daemon beside `tor` process. `Vanguards` logs will be displayed to stdout using `pyentrypoint` logging, if you need raw output, set `ENTRYPOINT_RAW` to `true` in environment.
 
