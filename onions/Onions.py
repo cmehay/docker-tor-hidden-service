@@ -198,7 +198,8 @@ class Setup(object):
         for reg, call in match_map:
             for key, val in os.environ.items():
                 m = match(reg, key)
-                if m:
+                # Ignore GPG_KEY env variable to avoid warning (this is a deprecated setup)
+                if m and key != 'GPG_KEY':
                     try:
                         call(m.groups()[0].lower(), val)
                     except BaseException as e:
