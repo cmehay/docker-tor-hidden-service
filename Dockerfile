@@ -7,7 +7,7 @@ ARG     torsocks_version
 ENV     HOME /var/lib/tor
 ENV     POETRY_VIRTUALENVS_CREATE=false
 
-RUN     apk add --no-cache git bind-tools libevent-dev openssl-dev gnupg gcc make automake ca-certificates autoconf musl-dev coreutils libffi-dev zlib-dev && \
+RUN     apk add --no-cache git bind-tools cargo libevent-dev openssl-dev gnupg gcc make automake ca-certificates autoconf musl-dev coreutils libffi-dev zlib-dev && \
     mkdir -p /usr/local/src/ /var/lib/tor/ && \
     git clone https://git.torproject.org/tor.git /usr/local/src/tor && \
     cd /usr/local/src/tor && \
@@ -22,7 +22,7 @@ RUN     apk add --no-cache git bind-tools libevent-dev openssl-dev gnupg gcc mak
     cd .. && \
     rm -rf tor && \
     pip3 install --upgrade pip poetry && \
-    apk del git libevent-dev openssl-dev gnupg make automake autoconf musl-dev coreutils libffi-dev && \
+    apk del git libevent-dev openssl-dev gnupg cargo make automake autoconf musl-dev coreutils libffi-dev && \
     apk add --no-cache libevent openssl
 
 RUN    apk add --no-cache git gcc make automake autoconf musl-dev libtool && \
