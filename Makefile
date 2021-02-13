@@ -1,7 +1,9 @@
 .EXPORT_ALL_VARIABLES:
 
-TOR_VERSION = $(shell bash last_tor_version.sh)
-TORSOCKS_VERSION = $(shell bash last_torsocks_version.sh)
+LAST_TOR_VERSION = $(shell bash last_tor_version.sh)
+LAST_TORSOCKS_VERSION = $(shell bash last_torsocks_version.sh)
+TOR_VERSION = $(shell cat current_tor_version)
+TORSOCKS_VERSION = $(shell cat current_torsock_version)
 CUR_COMMIT = $(shell git rev-parse --short HEAD)
 CUR_TAG = v$(TOR_VERSION)-$(CUR_COMMIT)
 
@@ -11,6 +13,10 @@ test:
 tag:
 	git tag $(CUR_TAG)
 
+update_tor_version:
+	echo $(LAST_TOR_VERSION) > current_tor_version
+	echo $(LAST_TORSOCKS_VERSION) > current_torsock_version
+
 release: test tag
 	git push origin --tags
 
@@ -19,11 +25,13 @@ check:
 
 build:
 	- echo build with tor version $(TOR_VERSION) and torsocks version $(TORSOCKS_VERSION)
+	- echo 'Please run make update_tor_version to build the container with the last tor version'
 	docker-compose -f docker-compose.build.yml build
 
 rebuild:
 	- echo rebuild with tor version $(TOR_VERSION) and torsocks version $(TORSOCKS_VERSION)
-	docker-compose -f docker-compose.build.yml build --no-cache
+	- echo 'Please run make update_tor_version to build the container with the last tor version'
+	docker-compose -f docker-compose.build.yml build --no-cache --pull
 
 run: build
 	docker-compose -f docker-compose.v1.yml up --force-recreate
