@@ -1,6 +1,4 @@
 'This class define a service link'
-import base64
-import binascii
 import logging
 import os
 import pathlib
@@ -77,12 +75,6 @@ class ServicesGroup(object):
     def add_key(self, key):
         if self.imported_key:
             logging.warning('Secret key already set, overriding')
-        # Try to decode key from base64 encoding
-        # import the raw data if the input cannot be decoded as base64
-        try:
-            key = base64.b64decode(key)
-        except binascii.Error:
-            pass
         if isinstance(key, str):
             key = key.encode('ascii')
         self._onion.set_private_key(key)
