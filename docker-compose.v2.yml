@@ -35,8 +35,8 @@ services:
         FOO_TOR_SERVICE_VERSION: '3'
         # tor v3 address private key base 64 encoded
         FOO_TOR_SERVICE_KEY: |
-            PT0gZWQyNTUxOXYxLXNlY3JldDogdHlwZTAgPT0AAACArobDQYyZAWXei4QZwr++
-            j96H1X/gq14NwLRZ2O5DXuL0EzYKkdhZSILY85q+kfwZH8z4ceqe7u1F+0pQi/sM
+            PT0gZWQyNTUxOXYxLXNlY3JldDogdHlwZTAgPT0AAABYZRzL3zScTEqA8/5wfvHw
+            yLIzmih73lhgPGPh7SuOS6GTou4tXgNlTYSNb/Fvk1ajTTUno4tIQn/jMENO/20G
 
     # Keep keys in volumes
     volumes:
