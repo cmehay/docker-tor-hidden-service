@@ -3,7 +3,7 @@
 LAST_TOR_VERSION = $(shell bash last_tor_version.sh)
 LAST_TORSOCKS_VERSION = $(shell bash last_torsocks_version.sh)
 TOR_VERSION = $(shell cat current_tor_version)
-TORSOCKS_VERSION = $(shell cat current_torsock_version)
+TORSOCKS_VERSION = $(shell cat current_torsocks_version)
 CUR_COMMIT = $(shell git rev-parse --short HEAD)
 CUR_TAG = v$(TOR_VERSION)-$(CUR_COMMIT)
 
@@ -15,7 +15,7 @@ tag:
 
 update_tor_version:
 	echo $(LAST_TOR_VERSION) > current_tor_version
-	echo $(LAST_TORSOCKS_VERSION) > current_torsock_version
+	echo $(LAST_TORSOCKS_VERSION) > current_torsocks_version
 
 release: test tag
 	git push origin --tags
