@@ -113,10 +113,11 @@ class ServicesGroup(object):
         with open(key_file, 'rb') as f:
             self._onion.set_private_key_from_file(f)
 
-    def load_key(self, override=False):
+    def load_key(self, override=False, secret=True):
         if self.imported_key and not override:
             return
-        self.load_key_from_secrets()
+        if secret:
+            self.load_key_from_secrets()
         self.load_key_from_conf()
 
     def load_key_from_secrets(self):

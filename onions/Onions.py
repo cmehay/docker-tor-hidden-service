@@ -113,9 +113,9 @@ class Setup(object):
         assert len(key) > 800
         self.setup[host]['key'] = key
 
-    def _load_keys_in_services(self):
+    def _load_keys_in_services(self, secret=True):
         for service in self.services:
-            service.load_key()
+            service.load_key(secret=secret)
 
     def _get_service(self, host, service):
         self._add_host(host)
@@ -437,7 +437,7 @@ class Onions(Setup):
                     service.add_ports(service_dict['ports'])
                     if service not in group.services:
                         group.add_service(service)
-            self._load_keys_in_services()
+            self._load_keys_in_services(secret=False)
 
         if not os.path.exists(self.torrc):
             return
@@ -489,16 +489,16 @@ def main():
     logging.getLogger().setLevel(logging.WARNING)
     try:
         onions = Onions()
-        if args.setup:
-            onions.setup_hosts()
-        else:
-            onions.torrc_parser()
         if args.vanguards:
             onions.run_vanguards()
             return
         if args.resolve_control_port:
             onions.resolve_control_port()
             return
+        if args.setup:
+            onions.setup_hosts()
+        else:
+            onions.torrc_parser()
     except BaseException as e:
         logging.exception(e)
         error_msg = str(e)

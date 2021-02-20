@@ -24,12 +24,8 @@ services:
 
     # Set secret for key, use the same name as the service
     secrets:
-      - source: foo
-        target: foo
-        mode: 0400
-      - source: bar
-        target: bar
-        mode: 0400
+      - foo
+      - bar
 
   hello:
     image: tutum/hello-world
