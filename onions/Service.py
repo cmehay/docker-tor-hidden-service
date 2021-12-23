@@ -4,7 +4,6 @@ import os
 import pathlib
 import re
 
-from pytor import OnionV2
 from pytor import OnionV3
 from pytor.onion import EmptyDirException
 
@@ -14,7 +13,7 @@ class ServicesGroup(object):
     name = None
     version = None
     imported_key = False
-    _default_version = 2
+    _default_version = 3
     _onion = None
     _hidden_service_dir = "/var/lib/tor/hidden_service/"
 
@@ -27,7 +26,6 @@ class ServicesGroup(object):
         name_regex = r'^[a-zA-Z0-9-_]+$'
 
         self.onion_map = {
-            2: OnionV2,
             3: OnionV3,
         }
 

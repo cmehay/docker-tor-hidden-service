@@ -6,45 +6,14 @@ from base64 import b32encode
 from base64 import b64decode
 from hashlib import sha1
 
-import pytest
-from Crypto.PublicKey import RSA
-
 from onions import Onions
 
 
-def get_key_and_onion(version=2):
+def get_key_and_onion(version=3):
     key = {}
-    key[
-        2
-    ] = """
------BEGIN RSA PRIVATE KEY-----
-MIICXAIBAAKBgQCsMP4gl6g1Q313miPhb1GnDr56ZxIWGsO2PwHM1infkbhlBakR
-6DGQfpE31L1ZKTUxY0OexKbW088v8qCOfjD9Zk1i80JP4xzfWQcwFZ5yM/0fkhm3
-zLXqXdEahvRthmFsS8OWusRs/04U247ryTm4k5S0Ch5OTBuvMLzQ8W0yDwIDAQAB
-AoGAAZr3U5B2ZgC6E7phKUHjbf5KMlPxrDkVqAZQWvuIKmhuYqq518vlYmZ7rhyS
-o1kqAMrfH4TP1WLmJJlLe+ibRk2aonR4e0GbW4x151wcJdT1V3vdWAsVSzG3+dqX
-PiGT//DIe0OPSH6ecI8ftFRLODd6f5iGkF4gsUSTcVzAFgkCQQDTY67dRpOD9Ozw
-oYH48xe0B9NQCw7g4NSH85jPurJXnpn6lZ6bcl8x8ioAdgLyomR7fO/dJFYLw6uV
-LZLqZsVbAkEA0Iei3QcpsJnYgcQG7l5I26Sq3LwoiGRDFKRI6k0e+en9JQJgA3Ay
-tsLpyCHv9jQ762F6AVXFru5DmZX40F6AXQJBAIHoKac8Xx1h4FaEuo4WPkPZ50ey
-dANIx/OAhTFrp3vnMPNpDV60K8JS8vLzkx4vJBcrkXDSirqSFhkIN9grLi8CQEO2
-l5MQPWBkRKK2pc2Hfj8cdIMi8kJ/1CyCwE6c5l8etR3sbIMRTtZ76nAbXRFkmsRv
-La/7Syrnobngsh/vX90CQB+PSSBqiPSsK2yPz6Gsd6OLCQ9sdy2oRwFTasH8sZyl
-bhJ3M9WzP/EMkAzyW8mVs1moFp3hRcfQlZHl6g1U9D8=
------END RSA PRIVATE KEY-----
-    """
     onion = {}
     pub = {}
-    onion[2] = (
-        b32encode(
-            sha1(
-                RSA.importKey(key[2].strip()).publickey().exportKey("DER")[22:]
-            ).digest()[:10]
-        )
-        .decode()
-        .lower()
-        + ".onion"
-    )
+
 
     key[
         3
@@ -230,48 +199,6 @@ ff02::2	ip6-allrouters
     )
 
 
-def test_key(monkeypatch):
-
-    key, onion_url = get_key_and_onion()
-    env = {"SERVICE1_KEY": key}
-
-    monkeypatch.setattr(os, "environ", env)
-
-    onion = Onions()
-    onion._get_setup_from_env()
-
-    assert len(os.environ) == 1
-    assert len(onion.services) == 1
-
-    assert onion.services[0].onion_url == onion_url
-
-
-def test_key_v2(monkeypatch):
-    key, onion_url = get_key_and_onion(version=2)
-    envs = [
-        {
-            "GROUP1_TOR_SERVICE_HOSTS": "80:service1:80,81:service2:80",
-            "GROUP1_TOR_SERVICE_VERSION": "2",
-            "GROUP1_TOR_SERVICE_KEY": key,
-        },
-        {
-            "GROUP1_TOR_SERVICE_HOSTS": "80:service1:80,81:service2:80",
-            "GROUP1_TOR_SERVICE_KEY": key,
-        },
-    ]
-
-    for env in envs:
-        monkeypatch.setattr(os, "environ", env)
-
-        onion = Onions()
-        onion._get_setup_from_env()
-        onion._load_keys_in_services()
-
-        assert len(os.environ) == len(env)
-        assert len(onion.services) == 1
-
-        assert onion.services[0].onion_url == onion_url
-
 
 def test_key_v3(monkeypatch):
     key, onion_url = get_key_and_onion(version=3)
@@ -295,7 +222,7 @@ def test_key_v3(monkeypatch):
 
 def test_key_in_secret(fs, monkeypatch):
     env = {
-        "GROUP1_TOR_SERVICE_HOSTS": "80:service1:80",
+        # "GROUP1_TOR_SERVICE_HOSTS": "80:service1:80",
         "GROUP2_TOR_SERVICE_HOSTS": "80:service2:80",
         "GROUP3_TOR_SERVICE_HOSTS": "80:service3:80",
         "GROUP3_TOR_SERVICE_VERSION": "3",
@@ -303,22 +230,21 @@ def test_key_in_secret(fs, monkeypatch):
 
     monkeypatch.setattr(os, "environ", env)
 
-    key_v2, onion_url_v2 = get_key_and_onion()
+    # key_v2, onion_url_v2 = get_key_and_onion()
     key_v3, onion_url_v3 = get_key_and_onion(version=3)
 
-    fs.create_file("/run/secrets/group1", contents=key_v2)
     fs.create_file("/run/secrets/group3", contents=b64decode(key_v3))
 
     onion = Onions()
     onion._get_setup_from_env()
     onion._load_keys_in_services()
 
-    group1 = onion.find_group_by_name("group1")
+    # group1 = onion.find_group_by_name("group1")
     group2 = onion.find_group_by_name("group2")
     group3 = onion.find_group_by_name("group3")
 
-    assert group1.onion_url == onion_url_v2
-    assert group2.onion_url not in [onion_url_v2, onion_url_v3]
+    # assert group1.onion_url == onion_url_v2
+    assert group2.onion_url != onion_url_v3
     assert group3.onion_url == onion_url_v3
 
 
@@ -335,7 +261,6 @@ HiddenServiceSingleHopMode 1
         "SERVICE1_PORTS": "80:80",
         "SERVICE2_PORTS": "81:80,82:8000",
         "SERVICE3_PORTS": "80:unix://unix.socket",
-        "GROUP3_TOR_SERVICE_VERSION": "2",
         "GROUP3_TOR_SERVICE_HOSTS": "80:service4:888,81:service5:8080",
         "GROUP4_TOR_SERVICE_VERSION": "3",
         "GROUP4_TOR_SERVICE_HOSTS": "81:unix://unix2.sock",
@@ -384,7 +309,7 @@ HiddenServiceSingleHopMode 1
     assert torrc.count("HiddenServicePort 81 service5:8080") == 2
     assert torrc.count("HiddenServicePort 80 service5:80") == 1
     assert torrc.count("HiddenServicePort 81 unix://unix2.sock") == 1
-    assert torrc.count("HiddenServiceVersion 3") == 2
+    assert torrc.count("HiddenServiceVersion 3") == 6
     assert "HiddenServiceNonAnonymousMode 1\n" in torrc
     assert "HiddenServiceSingleHopMode 1\n" in torrc
     assert "ControlPort" not in torrc
@@ -404,7 +329,7 @@ HiddenServiceSingleHopMode 1
     for group in onion2.services:
         if group.name == "group1":
             assert len(group.services) == 2
-            assert group.version == 2
+            assert group.version == 3
             assert group.onion_url == onions_urls[group.name]
             assert set(service.host for service in group.services) == set(
                 ["service1", "service2"]
@@ -422,7 +347,7 @@ HiddenServiceSingleHopMode 1
                     ) == set([(81, 80), (82, 8000)])
         if group.name == "group2":
             assert len(group.services) == 1
-            assert group.version == 2
+            assert group.version == 3
             assert group.onion_url == onions_urls[group.name]
             assert set(service.host for service in group.services) == set(
                 ["group2"]
@@ -435,7 +360,7 @@ HiddenServiceSingleHopMode 1
 
         if group.name in ["group3", "group3v3"]:
             assert len(group.services) == 2
-            assert group.version == 2 if group.name == "group3" else 3
+            assert group.version == 3
             assert group.onion_url == onions_urls[group.name]
             assert set(service.host for service in group.services) == set(
                 ["service4", "service5"]
@@ -468,7 +393,7 @@ HiddenServiceSingleHopMode 1
 
         if group.name == "service5":
             assert len(group.services) == 1
-            assert group.version == 2
+            assert group.version == 3
             assert group.onion_url == onions_urls[group.name]
             assert set(service.host for service in group.services) == set(
                 ["service5"]
@@ -538,7 +463,7 @@ def test_groups(monkeypatch):
     onion = Onions()
     onion._get_setup_from_env()
 
-    onion_match = r"^[a-z2-7]{16}.onion$"
+    onion_match = r"^[a-z2-7]{56}.onion$"
 
     assert len(os.environ) == 6
     assert len(onion.services) == 2

@@ -427,7 +427,7 @@ class Onions(Setup):
 
         def setup_services():
             for name, setup in self.torrc_dict.items():
-                version = setup.get('version', 2)
+                version = setup.get('version', 3)
                 group = (self.find_group_by_name(name)
                          or self.add_empty_group(name, version=version))
                 for service_dict in setup.get('services', []):

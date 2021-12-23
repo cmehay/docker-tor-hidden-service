@@ -34,8 +34,6 @@ rebuild:
 	docker-compose -f docker-compose.build.yml build --no-cache --pull
 
 run: build
-	docker-compose -f docker-compose.v1.yml up --force-recreate
-run-v2: build
 	docker-compose -f docker-compose.v2.yml up --force-recreate
 
 run-v2-socket: build
