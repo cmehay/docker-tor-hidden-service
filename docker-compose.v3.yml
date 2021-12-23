@@ -12,9 +12,10 @@ services:
     environment:
         # Set version 3 on BAR group
         BAR_TOR_SERVICE_HOSTS: '80:hello:80,88:world:80'
+        # This is now optional as v2 are not supported anymore by tor network
         BAR_TOR_SERVICE_VERSION: '3'
 
-        # hello and again will share the same v2 onion_adress
+        # hello and again will share the same onion_adress
         FOO_TOR_SERVICE_HOSTS: '88:again:80,80:hello:80,800:hello:80,8888:hello:80'
 
 
@@ -45,6 +46,6 @@ volumes:
 
 secrets:
     foo:
-        file: ./private_key_foo_v2
+        file: ./private_key_foo_v3
     bar:
         file: ./private_key_bar_v3
