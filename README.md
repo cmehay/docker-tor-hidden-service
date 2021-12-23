@@ -118,7 +118,7 @@ A command line tool `onions` is available in container to get `.onion` url when 
 # Get services
 $ docker exec -ti torhiddenproxy_tor_1 onions
 hello: xwjtp3mj427zdp4tljiiivg2l5ijfvmt5lcsfaygtpp6cw254kykvpyd.onion:80
-world: .onion:80
+world: ootceq7skq7qpvvwf2tajeboxovalco7z3ka44vxbtfdr2tfvx5ld7ad.onion:80
 
 # Get json
 $ docker exec -ti torhiddenproxy_tor_1 onions --json
