@@ -1,4 +1,4 @@
-FROM    python:3.8-alpine
+FROM    python:3.9-alpine
 
 # if omitted, the versions are determined from the git tags
 ARG     tor_version
