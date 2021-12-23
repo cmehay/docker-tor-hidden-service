@@ -12,7 +12,6 @@ services:
     environment:
         # Set version 3 on BAR group
         BAR_TOR_SERVICE_HOSTS: '80:hello:80,88:world:80'
-        BAR_TOR_SERVICE_VERSION: '3'
 
         # hello and again will share the same v2 onion_adress
         FOO_TOR_SERVICE_HOSTS: '88:again:80,80:hello:80,800:hello:80,8888:hello:80'

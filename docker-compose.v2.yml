@@ -32,7 +32,6 @@ services:
 
         # hello and again will share the same onion_adress
         FOO_TOR_SERVICE_HOSTS: 88:again:80,8000:world:80
-        FOO_TOR_SERVICE_VERSION: '3'
         # tor v3 address private key base 64 encoded
         FOO_TOR_SERVICE_KEY: |
             PT0gZWQyNTUxOXYxLXNlY3JldDogdHlwZTAgPT0AAABYZRzL3zScTEqA8/5wfvHw

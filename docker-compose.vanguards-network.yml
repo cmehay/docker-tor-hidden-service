@@ -19,7 +19,6 @@ services:
           loglevel = DEBUG
 
         HELLO_TOR_SERVICE_HOSTS: '80:hello:80'
-        HELLO_TOR_SERVICE_VERSION: '3'
 
     # Keep keys in volumes
     volumes:

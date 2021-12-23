@@ -69,9 +69,7 @@ def get_torrc_template():
     return r"""
 {% for service_group in onion.services %}
 HiddenServiceDir {{service_group.hidden_service_dir}}
-    {% if service_group.version == 3 %}
 HiddenServiceVersion 3
-    {% endif %}
     {% for service in service_group.services %}
         {% for port in service.ports %}
             {% if port.is_socket %}
@@ -251,7 +249,6 @@ def test_key_v2(monkeypatch):
     envs = [
         {
             "GROUP1_TOR_SERVICE_HOSTS": "80:service1:80,81:service2:80",
-            "GROUP1_TOR_SERVICE_VERSION": "2",
             "GROUP1_TOR_SERVICE_KEY": key,
         },
         {
@@ -277,7 +274,6 @@ def test_key_v3(monkeypatch):
     key, onion_url = get_key_and_onion(version=3)
     env = {
         "GROUP1_TOR_SERVICE_HOSTS": "80:service1:80,81:service2:80",
-        "GROUP1_TOR_SERVICE_VERSION": "3",
         "GROUP1_TOR_SERVICE_KEY": key,
     }
 
@@ -298,7 +294,6 @@ def test_key_in_secret(fs, monkeypatch):
         "GROUP1_TOR_SERVICE_HOSTS": "80:service1:80",
         "GROUP2_TOR_SERVICE_HOSTS": "80:service2:80",
         "GROUP3_TOR_SERVICE_HOSTS": "80:service3:80",
-        "GROUP3_TOR_SERVICE_VERSION": "3",
     }
 
     monkeypatch.setattr(os, "environ", env)
@@ -335,11 +330,8 @@ HiddenServiceSingleHopMode 1
         "SERVICE1_PORTS": "80:80",
         "SERVICE2_PORTS": "81:80,82:8000",
         "SERVICE3_PORTS": "80:unix://unix.socket",
-        "GROUP3_TOR_SERVICE_VERSION": "2",
         "GROUP3_TOR_SERVICE_HOSTS": "80:service4:888,81:service5:8080",
-        "GROUP4_TOR_SERVICE_VERSION": "3",
         "GROUP4_TOR_SERVICE_HOSTS": "81:unix://unix2.sock",
-        "GROUP3V3_TOR_SERVICE_VERSION": "3",
         "GROUP3V3_TOR_SERVICE_HOSTS": "80:service4:888,81:service5:8080",
         "SERVICE5_TOR_SERVICE_HOSTS": "80:service5:80",
         "TOR_EXTRA_OPTIONS": extra_options,
