@@ -53,3 +53,8 @@ run-vanguards: build
 
 run-vanguards-network: build
 	docker-compose -f docker-compose.vanguards-network.yml up --force-recreate
+
+publish: build
+	docker tag goldy/tor-hidden-service:$(CUR_TAG) goldy/tor-hidden-service:latest
+	docker push goldy/tor-hidden-service:$(CUR_TAG)
+	docker push goldy/tor-hidden-service:latest

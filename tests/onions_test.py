@@ -2,6 +2,7 @@ import configparser
 import json
 import os
 import re
+import pytest
 from base64 import b32encode
 from base64 import b64decode
 from hashlib import sha1
