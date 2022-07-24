@@ -8,7 +8,7 @@ services:
     environment:
         # Enable control port with ip binding (see networks configuration bellow)
         # Using network interface instead of 0.0.0.0 help to protect control port from hidden services.
-        TOR_CONTROL_PORT: 127.16.111.10
+        TOR_CONTROL_PORT: 172.16.111.10
         # Set controle port password (optionnal)
         TOR_CONTROL_PASSWORD: something_secret
 
@@ -54,7 +54,7 @@ services:
 
     environment:
       # Set tor hostname (or ip:port or unix:/path/to/socket.sock)
-      TOR_CONTROL_PORT: tor
+      TOR_CONTROL_PORT: tor:9051
       # set password if needed
       TOR_CONTROL_PASSWORD: something_secret
 
