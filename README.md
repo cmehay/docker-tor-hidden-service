@@ -4,6 +4,13 @@
 
 ## Changelog
 
+* 26 jul 2022
+  * Update `onions` tool to v0.7.1:
+    * Fix an issue when restarting a container with control port enabled
+    * Updated to python 3.10
+  * Fix a typo in `docker-compose.vanguards-network.yml`, it works now
+  * Update `tor` to `0.4.7.8`
+
 * 23 dec 2021
   * Update `onions` tool to v0.7.0:
     * Drop support of onion v2 adresses as tor network does not accept them anymore
