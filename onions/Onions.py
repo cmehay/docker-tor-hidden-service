@@ -57,9 +57,10 @@ class Setup(object):
                 self.setup[host]['ports'][host].append(port)
 
     def _hash_control_port_password(self, password):
-        self.control_hashed_password = subprocess.check_output([
-            'tor', '--quiet', '--hash-password', password
-        ]).decode()
+        self.control_hashed_password = subprocess.check_output(
+            ['/usr/local/bin/tor', '--quiet', '--hash-password', password],
+            env={'HOME': '/tmp'}
+        ).decode()
 
     def _parse_control_port_variable(self, check_ip=True):
         control_port = os.environ['TOR_CONTROL_PORT']
