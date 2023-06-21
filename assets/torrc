@@ -49,4 +49,5 @@ HashedControlPassword {{ onion.control_hashed_password }}
 {{env['TOR_EXTRA_OPTIONS']}}
 {% endif %}
 
-# useless line for Jinja bug
+# useless line for Jinja bug 
+HiddenServiceVersion 3

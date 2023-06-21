@@ -1,6 +1,9 @@
 # docker-tor-hidden-service
 
-[![Build Status](https://travis-ci.org/cmehay/docker-tor-hidden-service.svg?branch=master)](https://travis-ci.org/cmehay/docker-tor-hidden-service)
+## What's New?
+
+* /version is a text file with the current of Tor version generated with each build 
+* Weekly builds. The Goldy's original image hadn't been updated in some time. Using the latest version of Tor is always best practice.
 
 ## Changelog
 
