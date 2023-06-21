@@ -4,40 +4,41 @@ version: "2"
 
 services:
   tor:
-    image: goldy/tor-hidden-service
-    build: .
+    image: goldy/tor-hidden-service:$CUR_TAG
     links:
       - hello
       - world
       - again
     environment:
-        # Set mapping ports
-        HELLO_PORTS: 80:80,800:80,8888:80
-        # Set private key
-        HELLO_KEY: |
-            -----BEGIN RSA PRIVATE KEY-----
-            MIICXQIBAAKBgQDR8TdQF9fDlGhy1SMgfhMBi9TaFeD12/FK27TZE/tYGhxXvs1C
-            NmFJy1hjVxspF5unmUsCk0yEsvEdcAdp17Vynz6W41VdinETU9yXHlUJ6NyI32AH
-            dnFnHEcsllSEqD1hPAAvMUWwSMJaNmBEFtl8DUMS9tPX5fWGX4w5Xx8dZwIDAQAB
-            AoGBAMb20jMHxaZHWg2qTRYYJa8LdHgS0BZxkWYefnBUbZn7dOz7mM+tddpX6raK
-            8OSqyQu3Tc1tB9GjPLtnVr9KfVwhUVM7YXC/wOZo+u72bv9+4OMrEK/R8xy30XWj
-            GePXEu95yArE4NucYphxBLWMMu2E4RodjyJpczsl0Lohcn4BAkEA+XPaEKnNA3AL
-            1DXRpSpaa0ukGUY/zM7HNUFMW3UP00nxNCpWLSBmrQ56Suy7iSy91oa6HWkDD/4C
-            k0HslnMW5wJBANdz4ehByMJZmJu/b5y8wnFSqep2jmJ1InMvd18BfVoBTQJwGMAr
-            +qwSwNXXK2YYl9VJmCPCfgN0o7h1AEzvdYECQAM5UxUqDKNBvHVmqKn4zShb1ugY
-            t1RfS8XNbT41WhoB96MT9P8qTwlniX8UZiwUrvNp1Ffy9n4raz8Z+APNwvsCQQC9
-            AuaOsReEmMFu8VTjNh2G+TQjgvqKmaQtVNjuOgpUKYv7tYehH3P7/T+62dcy7CRX
-            cwbLaFbQhUUUD2DCHdkBAkB6CbB+qhu67oE4nnBCXllI9EXktXgFyXv/cScNvM9Y
-            FDzzNAAfVc5Nmbmx28Nw+0w6pnpe/3m0Tudbq3nHdHfQ
-            -----END RSA PRIVATE KEY-----
-
-        WORLD_PORTS: 8000:80
-
-        AGAIN_PORTS: 88:80
+        ######################################################################
+        ###        TOR ADDRESSES VERSION 2 ARE NOT SUPPORTED ANYMORE       ###
+        ######################################################################
+        # # Set mapping ports
+        # HELLO_TOR_SERVICE_HOSTS: 80:hello:80,800:hello:80,8888:hello:80
+        # # Set private key
+        # HELLO_TOR_SERVICE_KEY: |
+        #     -----BEGIN RSA PRIVATE KEY-----
+        #     MIICXQIBAAKBgQDR8TdQF9fDlGhy1SMgfhMBi9TaFeD12/FK27TZE/tYGhxXvs1C
+        #     NmFJy1hjVxspF5unmUsCk0yEsvEdcAdp17Vynz6W41VdinETU9yXHlUJ6NyI32AH
+        #     dnFnHEcsllSEqD1hPAAvMUWwSMJaNmBEFtl8DUMS9tPX5fWGX4w5Xx8dZwIDAQAB
+        #     AoGBAMb20jMHxaZHWg2qTRYYJa8LdHgS0BZxkWYefnBUbZn7dOz7mM+tddpX6raK
+        #     8OSqyQu3Tc1tB9GjPLtnVr9KfVwhUVM7YXC/wOZo+u72bv9+4OMrEK/R8xy30XWj
+        #     GePXEu95yArE4NucYphxBLWMMu2E4RodjyJpczsl0Lohcn4BAkEA+XPaEKnNA3AL
+        #     1DXRpSpaa0ukGUY/zM7HNUFMW3UP00nxNCpWLSBmrQ56Suy7iSy91oa6HWkDD/4C
+        #     k0HslnMW5wJBANdz4ehByMJZmJu/b5y8wnFSqep2jmJ1InMvd18BfVoBTQJwGMAr
+        #     +qwSwNXXK2YYl9VJmCPCfgN0o7h1AEzvdYECQAM5UxUqDKNBvHVmqKn4zShb1ugY
+        #     t1RfS8XNbT41WhoB96MT9P8qTwlniX8UZiwUrvNp1Ffy9n4raz8Z+APNwvsCQQC9
+        #     AuaOsReEmMFu8VTjNh2G+TQjgvqKmaQtVNjuOgpUKYv7tYehH3P7/T+62dcy7CRX
+        #     cwbLaFbQhUUUD2DCHdkBAkB6CbB+qhu67oE4nnBCXllI9EXktXgFyXv/cScNvM9Y
+        #     FDzzNAAfVc5Nmbmx28Nw+0w6pnpe/3m0Tudbq3nHdHfQ
+        #     -----END RSA PRIVATE KEY-----
 
         # hello and again will share the same onion_adress
-        AGAIN_SERVICE_NAME: foo
-        HELLO_SERVICE_NAME: foo
+        FOO_TOR_SERVICE_HOSTS: 88:again:80,8000:world:80
+        # tor v3 address private key base 64 encoded
+        FOO_TOR_SERVICE_KEY: |
+            PT0gZWQyNTUxOXYxLXNlY3JldDogdHlwZTAgPT0AAABYZRzL3zScTEqA8/5wfvHw
+            yLIzmih73lhgPGPh7SuOS6GTou4tXgNlTYSNb/Fvk1ajTTUno4tIQn/jMENO/20G
 
     # Keep keys in volumes
     volumes:

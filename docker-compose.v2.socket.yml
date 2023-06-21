@@ -4,13 +4,13 @@ version: "2"
 
 services:
   tor:
-    image: goldy/tor-hidden-service
+    image: goldy/tor-hidden-service:$CUR_TAG
     build: .
     links:
       - world
     environment:
-        # Set mapping port to unix socket
-        WORLD_PORTS: 80:unix:/var/run/nginx.sock
+        # Set service hosts to unix socket
+        WORLD_TOR_SERVICE_HOSTS: 80:unix://var/run/nginx.sock
 
     # Mount socket directory from world container
     volumes_from:

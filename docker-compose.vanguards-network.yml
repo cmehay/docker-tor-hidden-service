@@ -1,0 +1,105 @@
+# Run secure vanguards using network
+version: "3.1"
+
+services:
+  # Tor container
+  tor:
+    image: goldy/tor-hidden-service:$CUR_TAG
+    environment:
+        # Enable control port with ip binding (see networks configuration bellow)
+        # Using network interface instead of 0.0.0.0 help to protect control port from hidden services.
+        TOR_CONTROL_PORT: 172.16.111.10
+        # Set controle port password (optionnal)
+        TOR_CONTROL_PASSWORD: something_secret
+
+        # You can change any options here, excepted control_* ones and state_file
+        VANGUARDS_EXTRA_OPTIONS: |
+          [Global]
+          enable_cbtverify = True
+          loglevel = DEBUG
+
+        HELLO_TOR_SERVICE_HOSTS: '80:hello:80'
+        HELLO_TOR_SERVICE_VERSION: '3'
+
+    # Keep keys in volumes
+    volumes:
+      # Keep keys in volumes
+      - tor-keys:/var/lib/tor/hidden_service/
+      - tor-data:/run/tor/data
+
+    # Set secret for key, use the same name as the service
+    secrets:
+      - source: hello
+        target: hello
+        mode: 0400
+
+    networks:
+      hidden_services:
+        ipv4_address: 172.16.222.10
+      tor_control:
+        # Set an ip address for tor_control network to bind for the good network
+        ipv4_address: 172.16.111.10
+
+
+  # Vanguards container
+  vanguards:
+    depends_on:
+      - tor
+
+    # Use the same image
+    image: goldy/tor-hidden-service:$CUR_TAG
+
+    # Run vanguards
+    command: vanguards
+
+    environment:
+      # Set tor hostname (or ip:port or unix:/path/to/socket.sock)
+      TOR_CONTROL_PORT: tor:9051
+      # set password if needed
+      TOR_CONTROL_PASSWORD: something_secret
+
+    # Vanguards is assigned to tor_control network
+    networks:
+      - tor_control
+
+    # Sharing tor-data volume with tor container
+    volumes:
+      - tor-data:/run/tor/data
+
+
+  # Hidden service container
+  hello:
+    image: tutum/hello-world
+    hostname: hello
+    depends_on:
+      - tor
+    # this hidden service is assigned to hidden_services network
+    networks:
+      - hidden_services
+
+
+volumes:
+    tor-keys:
+        driver: local
+    tor-data:
+        driver: local
+
+secrets:
+    hello:
+        file: ./private_key_bar_v3
+
+networks:
+    # This network is used for hidden services
+    hidden_services:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.16.222.0/24
+    # This network is used for vagrands to get access to tor
+    tor_control:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.16.111.0/24

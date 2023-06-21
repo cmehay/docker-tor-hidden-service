@@ -1,4 +1,6 @@
-command: tor
+commands:
+    - tor
+    - vanguards
 
 user: tor
 group: tor
@@ -7,13 +9,31 @@ secret_env:
     - '*_KEY'
     - '*_PORTS'
     - '*_SERVICE_NAME'
+    - '*_TOR_SERVICE_*'
+    - 'TOR_SOCKS_PORT'
+    - TOR_CONTROL_PASSWORD
+
+config_files:
+    - vanguards:
+        - /var/local/tor/vanguards.conf.tpl: /etc/tor/vanguards.conf
 
 pre_conf_commands:
-    - onions --setup-hosts
+    - tor:
+        - onions --setup-hosts
 
 post_conf_commands:
-    - chown -R tor:tor $HOME
+    - tor:
+        - mkdir -p /run/tor
+        - chmod -R 700 $HOME /run/tor
+        - chown -R tor:tor $HOME /run/tor
 
+post_run_commands:
+    - tor:
+        - onions --run-vanguards
+
+set_environment:
+    - vanguards:
+        - TOR_CONTROL_PORT: onions --resolve-control-port
 reload:
     files:
         - /etc/tor/torrc

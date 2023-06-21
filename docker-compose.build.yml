@@ -1,0 +1,12 @@
+# docker version 3 builder
+
+version: "3.1"
+
+services:
+  tor:
+    image: goldy/tor-hidden-service:$CUR_TAG
+    build:
+      context: .
+      args:
+        tor_version: $TOR_VERSION
+        torsocks_version: $TORSOCKS_VERSION

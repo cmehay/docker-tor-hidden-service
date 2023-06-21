@@ -1,42 +1,63 @@
 'This class define a service link'
 import logging
 import os
+import pathlib
 import re
-from base64 import b32encode
-from hashlib import sha1
 
-from Crypto.PublicKey import RSA
+from pytor import OnionV3
+from pytor.onion import EmptyDirException
 
 
 class ServicesGroup(object):
 
     name = None
-    _priv_key = None
-    _key_in_secrets = False
+    version = None
+    imported_key = False
+    _default_version = 3
+    _onion = None
+    _hidden_service_dir = "/var/lib/tor/hidden_service/"
 
-    hidden_service_dir = "/var/lib/tor/hidden_service/"
-
-    def __init__(self, name=None, service=None, hidden_service_dir=None):
+    def __init__(self,
+                 name=None,
+                 service=None,
+                 version=None,
+                 hidden_service_dir=None):
 
         name_regex = r'^[a-zA-Z0-9-_]+$'
 
-        self.hidden_service_dir = hidden_service_dir or self.hidden_service_dir
+        self.onion_map = {
+            3: OnionV3,
+        }
+
         if not name and not service:
             raise Exception(
                 'Init service group with a name or service at least'
             )
         self.services = []
         self.name = name or service.host
+        if hidden_service_dir:
+            self._hidden_service_dir = hidden_service_dir
         if not re.match(name_regex, self.name):
             raise Exception(
                 'Group {name} has invalid name'.format(name=self.name)
             )
         if service:
             self.add_service(service)
+        self.set_version(version or self._default_version)
+        self.gen_key()
 
-        self.load_key()
-        if not self._priv_key:
-            self.gen_key()
+    def set_version(self, version):
+        version = int(version)
+        if version not in self.onion_map:
+            raise Exception(
+                f'Url version {version} is not supported'
+            )
+        self.version = version
+        self._onion = self.onion_map[version]()
+
+    @property
+    def hidden_service_dir(self):
+        return os.path.join(self._hidden_service_dir, self.name)
 
     def add_service(self, service):
         if service not in self.services:
@@ -50,15 +71,18 @@ class ServicesGroup(object):
                 return service
 
     def add_key(self, key):
-        if self._key_in_secrets:
+        if self.imported_key:
             logging.warning('Secret key already set, overriding')
-        self._priv_key = key
-        self._key_in_secrets = False
+        if isinstance(key, str):
+            key = key.encode('ascii')
+        self._onion.set_private_key(key)
+        self.imported_key = True
 
     def __iter__(self):
         yield 'name', self.name
         yield 'onion', self.onion_url
         yield 'urls', list(self.urls)
+        yield 'version', self.version
 
     def __str__(self):
         return '{name}: {urls}'.format(name=self.name,
@@ -66,16 +90,7 @@ class ServicesGroup(object):
 
     @property
     def onion_url(self):
-        "Get onion url from private key"
-
-        # Convert private RSA to public DER
-        priv = RSA.importKey(self._priv_key.strip())
-        der = priv.publickey().exportKey("DER")
-
-        # hash key, keep first half of sha1, base32 encode
-        onion = b32encode(sha1(der[22:]).digest()[:10])
-
-        return '{onion}.onion'.format(onion=onion.decode().lower())
+        return self._onion.onion_hostname
 
     @property
     def urls(self):
@@ -88,31 +103,19 @@ class ServicesGroup(object):
         'Write key on disk and set tor service'
         if not hidden_service_dir:
             hidden_service_dir = self.hidden_service_dir
-        serv_dir = os.path.join(hidden_service_dir, self.name)
-        os.makedirs(serv_dir, exist_ok=True)
-        os.chmod(serv_dir, 0o700)
-        with open(os.path.join(serv_dir, 'private_key'), 'w') as f:
-            f.write(self._priv_key)
-            os.fchmod(f.fileno(), 0o600)
-        with open(os.path.join(serv_dir, 'hostname'), 'w') as f:
-            f.write(self.onion_url)
+        if not os.path.isdir(hidden_service_dir):
+            pathlib.Path(hidden_service_dir).mkdir(parents=True)
+        self._onion.write_hidden_service(hidden_service_dir, force=True)
 
     def _load_key(self, key_file):
-        if os.path.exists(key_file):
-            with open(key_file, 'r') as f:
-                key = f.read().encode()
-                if not len(key):
-                    return
-                try:
-                    rsa = RSA.importKey(key)
-                    self._priv_key = rsa.exportKey("PEM").decode()
-                except BaseException:
-                    raise('Fail to load key for {name} services'.format(
-                        name=self.name
-                    ))
+        with open(key_file, 'rb') as f:
+            self._onion.set_private_key_from_file(f)
 
-    def load_key(self):
-        self.load_key_from_secrets()
+    def load_key(self, override=False, secret=True):
+        if self.imported_key and not override:
+            return
+        if secret:
+            self.load_key_from_secrets()
         self.load_key_from_conf()
 
     def load_key_from_secrets(self):
@@ -122,8 +125,9 @@ class ServicesGroup(object):
             return
         try:
             self._load_key(secret_file)
-            self._key_in_secrets = True
-        except BaseException:
+            self.imported_key = True
+        except BaseException as e:
+            logging.exception(e)
             logging.warning('Fail to load key from secret, '
                             'check the key or secret name collision')
 
@@ -131,16 +135,21 @@ class ServicesGroup(object):
         'Load key from disk if exists'
         if not hidden_service_dir:
             hidden_service_dir = self.hidden_service_dir
-        key_file = os.path.join(hidden_service_dir,
-                                self.name,
-                                'private_key')
-        self._load_key(key_file)
+        if not os.path.isdir(hidden_service_dir):
+            return
+        try:
+            self._onion.load_hidden_service(hidden_service_dir)
+            self.imported_key = True
+        except EmptyDirException:
+            pass
 
     def gen_key(self):
-        'Generate new 1024 bits RSA key for hidden service'
-        self._priv_key = RSA.generate(
-            bits=1024,
-        ).exportKey("PEM").decode()
+        self.imported_key = False
+        return self._onion.gen_new_private_key()
+
+    @property
+    def _priv_key(self):
+        return self._onion.get_private_key()
 
 
 class Ports:

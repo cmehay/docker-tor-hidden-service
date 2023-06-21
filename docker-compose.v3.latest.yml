@@ -4,7 +4,7 @@ version: "3.1"
 
 services:
   tor:
-    image: goldy/tor-hidden-service:$CUR_TAG
+    image: goldy/tor-hidden-service:latest
     links:
       - hello
       - world
@@ -25,8 +25,12 @@ services:
 
     # Set secret for key, use the same name as the service
     secrets:
-      - foo
-      - bar
+      - source: foo
+        target: foo
+        mode: 0400
+      - source: bar
+        target: bar
+        mode: 0400
 
   hello:
     image: tutum/hello-world

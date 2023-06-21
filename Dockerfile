@@ -1,41 +1,39 @@
-FROM    alpine
+FROM    python:3.10-alpine
+
+# if omitted, the versions are determined from the git tags
+ARG     tor_version
+ARG     torsocks_version
 
 ENV     HOME /var/lib/tor
+ENV     POETRY_VIRTUALENVS_CREATE=false
 
-RUN     apk add --no-cache git libevent-dev openssl-dev gcc make automake ca-certificates autoconf musl-dev coreutils zlib zlib-dev && \
-        mkdir -p /usr/local/src/ && \
-        git clone https://git.torproject.org/tor.git /usr/local/src/tor && \
-        cd /usr/local/src/tor && \
-        git checkout $(git branch -a | grep 'release' | sort -V | tail -1) && \
-        head ReleaseNotes | grep version | awk -F"version" '{print $2}' | grep - | awk '{ print $1 }' > /version && \
-        ./autogen.sh && \
-        ./configure \
-            --disable-asciidoc \
-            --sysconfdir=/etc \
-            --disable-unittests && \
-        make && make install && \
-        cd .. && \
-        rm -rf tor && \
-        apk add --no-cache python3 python3-dev && \
-        python3 -m ensurepip && \
-        rm -r /usr/lib/python*/ensurepip && \
-        pip3 install --upgrade pip setuptools pycrypto && \
-        apk del git libevent-dev openssl-dev make automake python3-dev gcc autoconf musl-dev coreutils && \
-        apk add --no-cache libevent openssl
+RUN     apk add --no-cache git bind-tools cargo libevent-dev openssl-dev gnupg gcc make automake ca-certificates autoconf musl-dev coreutils libffi-dev zlib-dev && \
+    mkdir -p /usr/local/src/ /var/lib/tor/ && \
+    git clone https://git.torproject.org/tor.git /usr/local/src/tor && \
+    cd /usr/local/src/tor && \
+    TOR_VERSION=${tor_version=$(git tag | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)} && \
+    git checkout tor-$TOR_VERSION && \
+    ./autogen.sh && \
+    ./configure \
+    --disable-asciidoc \
+    --sysconfdir=/etc \
+    --disable-unittests && \
+    make && make install && \
+    cd .. && \
+    rm -rf tor && \
+    pip3 install --upgrade pip poetry && \
+    apk del git libevent-dev openssl-dev gnupg cargo make automake autoconf musl-dev coreutils libffi-dev && \
+    apk add --no-cache libevent openssl
 
-RUN     mkdir -p /etc/tor/
+RUN   mkdir -p ${HOME}/.tor && \
+      addgroup -S -g 107 tor && \
+      adduser -S -G tor -u 104 -H -h ${HOME} tor
 
-ADD     assets/entrypoint-config.yml /
-ADD     assets/onions /usr/local/src/onions
-ADD     assets/torrc /var/local/tor/torrc.tpl
-ADD     assets/v3onions /usr/bin/v3onions
+COPY    assets/entrypoint-config.yml /
+COPY    assets/torrc /var/local/tor/torrc.tpl
+COPY    assets/vanguards.conf.tpl /var/local/tor/vanguards.conf.tpl
 
-RUN     chmod +x /usr/bin/v3onions
-RUN     cd /usr/local/src/onions && python3 setup.py install
-
-RUN     mkdir -p ${HOME}/.tor && \
-        addgroup -S -g 107 tor && \
-        adduser -S -G tor -u 104 -H -h ${HOME} tor
+ENV     VANGUARDS_CONFIG /etc/tor/vanguards.conf
 
 VOLUME  ["/var/lib/tor/hidden_service/"]
 
